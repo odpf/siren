@@ -42,6 +42,11 @@ func TestMessage_BuildGoSlackMessageOptions(t *testing.T) {
 						},
 					},
 				},
+				Blocks: []MessageBlock{
+					{
+						"type": "section",
+					},
+				},
 			},
 			wantErr: false,
 		},

@@ -18,7 +18,7 @@ import (
 
 const (
 	defaultSlackAPIHost = "https://slack.com/api"
-	oAuthSlackPath      = "/oauth.v2.access"
+	slackPathOAuth      = "/oauth.v2.access"
 )
 
 type GoSlackCaller interface {
@@ -100,7 +100,7 @@ func (c *Client) ExchangeAuth(ctx context.Context, authCode, clientID, clientSec
 	data.Set("client_secret", clientSecret)
 
 	response := codeExchangeHTTPResponse{}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.cfg.APIHost+oAuthSlackPath, strings.NewReader(data.Encode()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.cfg.APIHost+slackPathOAuth, strings.NewReader(data.Encode()))
 	if err != nil {
 		return Credential{}, fmt.Errorf("failed to create request body: %w", err)
 	}
@@ -206,7 +206,7 @@ func (c *Client) notify(ctx context.Context, conf NotificationConfig, message Me
 		return err
 	}
 
-	if err := c.sendMessageContext(ctx, gsc, channelID, message.Channel, msgOptions...); err != nil {
+	if err := c.sendMessageContext(ctx, gsc, channelID, msgOptions...); err != nil {
 		if err := c.checkSlackErrorRetryable(err); errors.As(err, new(retry.RetryableError)) {
 			return err
 		}
@@ -216,7 +216,7 @@ func (c *Client) notify(ctx context.Context, conf NotificationConfig, message Me
 	return nil
 }
 
-func (c *Client) sendMessageContext(ctx context.Context, gsc GoSlackCaller, channelID string, channelName string, msgOpts ...goslack.MsgOption) error {
+func (c *Client) sendMessageContext(ctx context.Context, gsc GoSlackCaller, channelID string, msgOpts ...goslack.MsgOption) error {
 	_, _, _, err := gsc.SendMessageContext(
 		ctx,
 		channelID,

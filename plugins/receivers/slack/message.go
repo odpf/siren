@@ -16,6 +16,7 @@ type Message struct {
 	IconURL     string              `yaml:"icon_url,omitempty" json:"icon_url,omitempty"  mapstructure:"icon_url"`
 	LinkNames   bool                `yaml:"link_names,omitempty" json:"link_names,omitempty"  mapstructure:"link_names"`
 	Attachments []MessageAttachment `yaml:"attachments,omitempty" json:"attachments,omitempty" mapstructure:"attachments"`
+	Blocks      []MessageBlock      `yaml:"blocks,omitempty" json:"blocks,omitempty" mapstructure:"blocks"`
 }
 
 func (m Message) BuildGoSlackMessageOptions() ([]goslack.MsgOption, error) {
@@ -26,6 +27,11 @@ func (m Message) BuildGoSlackMessageOptions() ([]goslack.MsgOption, error) {
 			return nil, fmt.Errorf("failed to parse slack attachment: %w", err)
 		}
 		goslackAttachments = append(goslackAttachments, *attachment)
+	}
+
+	var goslackBlocks = []goslack.Block{}
+	for _, bl := range m.Blocks {
+		goslackBlocks = append(goslackBlocks, bl)
 	}
 
 	msgOptions := []goslack.MsgOption{}
@@ -50,6 +56,10 @@ func (m Message) BuildGoSlackMessageOptions() ([]goslack.MsgOption, error) {
 		msgOptions = append(msgOptions, goslack.MsgOptionAttachments(goslackAttachments...))
 	}
 
+	if len(goslackBlocks) != 0 {
+		msgOptions = append(msgOptions, goslack.MsgOptionBlocks(goslackBlocks...))
+	}
+
 	return msgOptions, nil
 }
 
@@ -70,4 +80,14 @@ func (ma MessageAttachment) ToGoSlack() (*goslack.Attachment, error) {
 	}
 
 	return ga, nil
+}
+
+type MessageBlock map[string]any
+
+func (mb MessageBlock) BlockType() goslack.MessageBlockType {
+	blockType, ok := mb["type"].(goslack.MessageBlockType)
+	if !ok {
+		return ""
+	}
+	return blockType
 }
