@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/goto/siren/core/namespace"
 	"github.com/goto/siren/internal/store/model"
@@ -72,6 +74,14 @@ func (r NamespaceRepository) List(ctx context.Context) ([]namespace.EncryptedNam
 		return nil, err
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String("db.sql.table", "namespaces"),
+		}...,
+	)
+
 	rows, err := r.client.QueryxContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -99,6 +109,15 @@ func (r NamespaceRepository) Create(ctx context.Context, ns *namespace.Encrypted
 	nsModel.FromDomain(*ns)
 
 	var createdNamespace model.Namespace
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String("db.sql.table", "namespaces"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, namespaceInsertQuery,
 		nsModel.ProviderID,
 		nsModel.URN,
@@ -128,6 +147,15 @@ func (r NamespaceRepository) Get(ctx context.Context, id uint64) (*namespace.Enc
 	}
 
 	var nsDetailModel model.NamespaceDetail
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Get"),
+			attribute.String("db.sql.table", "namespaces"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, query, args...).StructScan(&nsDetailModel); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, namespace.NotFoundError{ID: id}
@@ -147,6 +175,15 @@ func (r NamespaceRepository) Update(ctx context.Context, ns *namespace.Encrypted
 	namespaceModel.FromDomain(*ns)
 
 	var updatedNamespace model.Namespace
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Update"),
+			attribute.String("db.sql.table", "namespaces"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, namespaceUpdateQuery,
 		namespaceModel.ID,
 		namespaceModel.ProviderID,
@@ -179,6 +216,15 @@ func (r NamespaceRepository) UpdateLabels(ctx context.Context, id uint64, labels
 	}
 	pgLabels := pgc.StringStringMap(labels)
 	var updatedNamespace model.Namespace
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "UpdateLabels"),
+			attribute.String("db.sql.table", "namespaces"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, namespaceUpdateLabelQuery, id, pgLabels).
 		StructScan(&updatedNamespace); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -189,6 +235,15 @@ func (r NamespaceRepository) UpdateLabels(ctx context.Context, id uint64, labels
 }
 
 func (r NamespaceRepository) Delete(ctx context.Context, id uint64) error {
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Delete"),
+			attribute.String("db.sql.table", "namespaces"),
+		}...,
+	)
+
 	rows, err := r.client.QueryxContext(ctx, namespaceDeleteQuery, id)
 	if err != nil {
 		return err

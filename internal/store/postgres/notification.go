@@ -7,6 +7,8 @@ import (
 	"github.com/goto/siren/core/notification"
 	"github.com/goto/siren/internal/store/model"
 	"github.com/goto/siren/pkg/pgc"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const notificationInsertQuery = `
@@ -32,6 +34,15 @@ func (r *NotificationRepository) Create(ctx context.Context, n notification.Noti
 	nModel.FromDomain(n)
 
 	var newNModel model.Notification
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String("db.sql.table", "notifications"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, notificationInsertQuery,
 		nModel.NamespaceID,
 		nModel.Type,

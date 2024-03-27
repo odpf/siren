@@ -10,6 +10,8 @@ import (
 	"github.com/goto/siren/internal/store/model"
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/pgc"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const silenceInsertQuery = `
@@ -51,6 +53,15 @@ func (r *SilenceRepository) Create(ctx context.Context, s silence.Silence) (stri
 	sModel.FromDomain(s)
 
 	var newSModel model.Silence
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String("db.sql.table", "silences"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, silenceInsertQuery,
 		sModel.NamespaceID,
 		sModel.Type,
@@ -103,6 +114,14 @@ func (r *SilenceRepository) List(ctx context.Context, flt silence.Filter) ([]sil
 		return nil, err
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String("db.sql.table", "silences"),
+		}...,
+	)
+
 	rows, err := r.client.QueryxContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -131,6 +150,15 @@ func (r *SilenceRepository) Get(ctx context.Context, id string) (silence.Silence
 	}
 
 	var modelSilence model.Silence
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx, 
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Get"),
+			attribute.String("db.sql.table", "silences"),
+		}...,
+	)
+
 	if err := r.client.GetContext(ctx, &modelSilence, query, args...); err != nil {
 		return silence.Silence{}, err
 	}

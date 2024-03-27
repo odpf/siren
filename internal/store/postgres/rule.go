@@ -9,6 +9,8 @@ import (
 	"github.com/goto/siren/internal/store/model"
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/pgc"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const ruleUpsertQuery = `
@@ -58,6 +60,15 @@ func (r *RuleRepository) Upsert(ctx context.Context, rl *rule.Rule) error {
 	}
 
 	var newRuleModel model.Rule
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Upsert"),
+			attribute.String("db.sql.table", "rules"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, ruleUpsertQuery,
 		ruleModel.Name,
 		ruleModel.Namespace,
@@ -109,6 +120,14 @@ func (r *RuleRepository) List(ctx context.Context, flt rule.Filter) ([]rule.Rule
 	if err != nil {
 		return nil, err
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx, 
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String("db.sql.table", "rules"),
+		}...,
+	)
 
 	rows, err := r.client.QueryxContext(ctx, query, args...)
 	if err != nil {

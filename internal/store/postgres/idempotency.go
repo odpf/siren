@@ -10,6 +10,8 @@ import (
 	"github.com/goto/siren/internal/store/model"
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/pgc"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 var idempotenctListQueryBuilder = sq.Select(
@@ -44,6 +46,15 @@ func (r *IdempotencyRepository) Create(ctx context.Context, scope, key, notifica
 		return nil, errors.ErrInvalid.WithMsgf("scope or key cannot be empty")
 	}
 	var idempotencyModel model.Idempotency
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx, 
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String("db.sql.table", "idempotencies"),
+		}...,
+	)
+	
 	if err := r.client.QueryRowxContext(ctx, idempotencyInsertQuery,
 		scope, key, notificationID,
 	).StructScan(&idempotencyModel); err != nil {
@@ -64,6 +75,13 @@ func (r *IdempotencyRepository) Check(ctx context.Context, scope, key string) (*
 		return nil, err
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx, 
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Check"),
+			attribute.String("db.sql.table", "idempotencies"),
+		}...,
+	)
 	if err := r.client.GetContext(ctx, &idempotencyModel, query, args...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.ErrNotFound
@@ -82,6 +100,13 @@ func (r *IdempotencyRepository) Delete(ctx context.Context, filter notification.
 
 	ttlInSecond := int(filter.TTL.Seconds())
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx, 
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String("db.sql.table", "idempotencies"),
+		}...,
+	)
 	rows, err := r.client.ExecContext(ctx, fmt.Sprintf(idempotencyDeleteTemplateQuery, ttlInSecond))
 	if err != nil {
 		return err

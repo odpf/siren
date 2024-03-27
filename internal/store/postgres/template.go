@@ -9,6 +9,8 @@ import (
 	"github.com/goto/siren/internal/store/model"
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/pgc"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const templateUpsertQuery = `
@@ -55,6 +57,15 @@ func (r TemplateRepository) Upsert(ctx context.Context, tmpl *template.Template)
 	}
 
 	var upsertedTemplate model.Template
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Upsert"),
+			attribute.String("db.sql.table", "templates"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, templateUpsertQuery,
 		templateModel.Name,
 		templateModel.Body,
@@ -89,6 +100,14 @@ func (r TemplateRepository) List(ctx context.Context, flt template.Filter) ([]te
 		return nil, err
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String("db.sql.table", "templates"),
+		}...,
+	)
+
 	rows, err := r.client.QueryxContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -118,6 +137,15 @@ func (r TemplateRepository) GetByName(ctx context.Context, name string) (*templa
 	}
 
 	var templateModel model.Template
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetByName"),
+			attribute.String("db.sql.table", "templates"),
+		}...,
+	)
+
 	if err = r.client.GetContext(ctx, &templateModel, query, args...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, template.NotFoundError{Name: name}
@@ -134,6 +162,15 @@ func (r TemplateRepository) GetByName(ctx context.Context, name string) (*templa
 }
 
 func (r TemplateRepository) Delete(ctx context.Context, name string) error {
+	
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Delete"),
+			attribute.String("db.sql.table", "templates"),
+		}..., 
+	)
+
 	if _, err := r.client.ExecContext(ctx, templateDeleteByNameQuery, name); err != nil {
 		return err
 	}

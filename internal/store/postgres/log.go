@@ -8,6 +8,8 @@ import (
 	"github.com/goto/siren/internal/store/model"
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/pgc"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const notificationLogTableName = "notification_log"
@@ -31,6 +33,15 @@ func NewLogRepository(client *pgc.Client) *LogRepository {
 }
 
 func (r *LogRepository) ListAlertIDsBySilenceID(ctx context.Context, silenceID string) ([]int64, error) {
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "ListAlertIDsBySilenceID"),
+			attribute.String("db.sql.table", "notification_log"),
+		}...,
+	)
+
 	rows, err := r.client.QueryxContext(ctx, fmt.Sprintf(`
 	SELECT distinct unnest(alert_ids) AS alert_ids FROM %s WHERE silence_ids @> '{%s}'
 	`, notificationLogTableName, silenceID))
@@ -53,6 +64,15 @@ func (r *LogRepository) ListAlertIDsBySilenceID(ctx context.Context, silenceID s
 }
 
 func (r *LogRepository) ListSubscriptionIDsBySilenceID(ctx context.Context, silenceID string) ([]int64, error) {
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "ListSubscriptionIDsBySilenceID"),
+			attribute.String("db.sql.table", "notification_log"),
+		}...,
+	)
+
 	rows, err := r.client.QueryxContext(ctx, fmt.Sprintf(`
 	SELECT distinct subscription_id FROM %s WHERE silence_ids @> '{%s}'
 	`, notificationLogTableName, silenceID))
@@ -82,6 +102,14 @@ func (r *LogRepository) BulkCreate(ctx context.Context, nss []log.Notification) 
 
 		nssModel = append(nssModel, *nsModel)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "BulkCreate"),
+			attribute.String("db.sql.table", "notification_log"),
+		}...,
+	)
 
 	res, err := r.client.NamedExecContext(ctx, notificationLogInsertNamedQuery, nssModel)
 	if err != nil {

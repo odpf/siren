@@ -92,7 +92,7 @@ func (tr *testTime) Execute(ctx context.Context) error {
 	}
 	tr.prevExecution = now
 
-	return errors.New("some error")
+	return retry.RetryableError{Err: errors.New("retryable error")}
 }
 
 func TestRetrier_RetryWithoutBackoff(t *testing.T) {
@@ -105,7 +105,7 @@ func TestRetrier_RetryWithoutBackoff(t *testing.T) {
 			name: "a retry executions without backoff should be at constant rate. (10ms, 4 retries)",
 			cfg: retry.Config{
 				MaxTries:      4,
-				EnableBackoff: true,
+				EnableBackoff: false,
 				WaitDuration:  10 * time.Millisecond,
 				Enable:        true,
 			},
@@ -137,6 +137,7 @@ func TestRetrier_RetryWithoutBackoff(t *testing.T) {
 			rtr := retry.New(tc.cfg)
 			_ = rtr.Run(context.TODO(), tr.Execute)
 
+			// InEpsilonSlice expected and actual have a relative error less than epsilon, compares each value from two slices
 			assert.InEpsilonSlice(t, tc.expectedWaitTimes, tr.waitTimes, 0.1)
 		})
 	}

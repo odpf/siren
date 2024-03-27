@@ -12,6 +12,8 @@ import (
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/pgc"
 	"github.com/lib/pq"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const subscriptionInsertQuery = `
@@ -98,6 +100,14 @@ func (r *SubscriptionRepository) List(ctx context.Context, flt subscription.Filt
 		return nil, err
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String("db.sql.table", "subscriptions"),
+		}...,
+	)
+
 	rows, err := r.client.QueryxContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -126,6 +136,15 @@ func (r *SubscriptionRepository) Create(ctx context.Context, sub *subscription.S
 	subscriptionModel.FromDomain(*sub)
 
 	var newSubscriptionModel model.Subscription
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String("db.sql.table", "subscriptions"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, subscriptionInsertQuery,
 		subscriptionModel.NamespaceID,
 		subscriptionModel.URN,
@@ -157,6 +176,15 @@ func (r *SubscriptionRepository) Get(ctx context.Context, id uint64) (*subscript
 	}
 
 	var subscriptionModel model.Subscription
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Get"),
+			attribute.String("db.sql.table", "subscriptions"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, query, args...).StructScan(&subscriptionModel); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, subscription.NotFoundError{ID: id}
@@ -176,6 +204,15 @@ func (r *SubscriptionRepository) Update(ctx context.Context, sub *subscription.S
 	subscriptionModel.FromDomain(*sub)
 
 	var newSubscriptionModel model.Subscription
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Update"),
+			attribute.String("db.sql.table", "subscriptions"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, subscriptionUpdateQuery,
 		subscriptionModel.ID,
 		subscriptionModel.NamespaceID,
@@ -204,6 +241,15 @@ func (r *SubscriptionRepository) Update(ctx context.Context, sub *subscription.S
 }
 
 func (r *SubscriptionRepository) Delete(ctx context.Context, id uint64) error {
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Delete"),
+			attribute.String("db.sql.table", "subscriptions"),
+		}...,
+	)
+
 	if _, err := r.client.ExecContext(ctx, subscriptionDeleteQuery, id); err != nil {
 		return err
 	}

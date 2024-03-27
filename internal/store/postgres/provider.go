@@ -9,6 +9,8 @@ import (
 	"github.com/goto/siren/internal/store/model"
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/pgc"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const providerInsertQuery = `
@@ -64,6 +66,14 @@ func (r ProviderRepository) List(ctx context.Context, flt provider.Filter) ([]pr
 		return nil, err
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String("db.sql.table", "providers"),
+		}...,
+	)
+
 	rows, err := r.client.QueryxContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -92,6 +102,15 @@ func (r ProviderRepository) Create(ctx context.Context, prov *provider.Provider)
 	provModel.FromDomain(*prov)
 
 	var createdProvider model.Provider
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String("db.sql.table", "providers"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, providerInsertQuery,
 		provModel.Host,
 		provModel.URN,
@@ -121,6 +140,15 @@ func (r ProviderRepository) Get(ctx context.Context, id uint64) (*provider.Provi
 	}
 
 	var provModel model.Provider
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Get"),
+			attribute.String("db.sql.table", "providers"),
+		}...,
+	)
+
 	if err := r.client.GetContext(ctx, &provModel, query, args...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, provider.NotFoundError{ID: id}
@@ -140,6 +168,15 @@ func (r ProviderRepository) Update(ctx context.Context, provDomain *provider.Pro
 	provModel.FromDomain(*provDomain)
 
 	var updatedProvider model.Provider
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Update"),
+			attribute.String("db.sql.table", "providers"),
+		}...,
+	)
+
 	if err := r.client.QueryRowxContext(ctx, providerUpdateQuery,
 		provModel.ID,
 		provModel.Host,
@@ -165,6 +202,15 @@ func (r ProviderRepository) Update(ctx context.Context, provDomain *provider.Pro
 }
 
 func (r ProviderRepository) Delete(ctx context.Context, id uint64) error {
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Delete"),
+			attribute.String("db.sql.table", "providers"),
+		}...,
+	)
+
 	if _, err := r.client.ExecContext(ctx, providerDeleteQuery, id); err != nil {
 		return err
 	}
