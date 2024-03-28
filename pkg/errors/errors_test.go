@@ -133,8 +133,8 @@ func TestError_Is(t *testing.T) {
 		},
 		{
 			title: "WithSameCode",
-			err:   errors.ErrInvalid.WithCausef("cause 1"),
-			other: errors.ErrInvalid.WithCausef("cause 2"),
+			err:   errors.ErrInvalid.WithMsgf("cause 1"),
+			other: errors.ErrInvalid.WithMsgf("cause 2"),
 			want:  true,
 		},
 	}

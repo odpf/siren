@@ -89,7 +89,7 @@ func (r ReceiverRepository) List(ctx context.Context, flt receiver.Filter) ([]re
 		for _, labels := range flt.MultipleLabels {
 			labelsJSON, err := json.Marshal(labels)
 			if err != nil {
-				return nil, errors.ErrInvalid.WithCausef("problem marshalling labels %v json to string with err: %s", labels, err.Error())
+				return nil, errors.ErrInvalid.WithMsgf("problem marshalling labels %v json to string with err: %s", labels, err.Error())
 			}
 			matchLabelsExpression = append(
 				matchLabelsExpression,
@@ -237,7 +237,7 @@ func (r ReceiverRepository) Update(ctx context.Context, rcv *receiver.Receiver) 
 
 func (r ReceiverRepository) PatchLabels(ctx context.Context, rcv *receiver.Receiver) error {
 	if rcv == nil {
-		return errors.ErrInvalid.WithCausef("receiver cannot be nil")
+		return errors.ErrInvalid.WithMsgf("receiver cannot be nil")
 	}
 
 	receiverModel := new(model.Receiver)

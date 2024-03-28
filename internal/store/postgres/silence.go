@@ -96,7 +96,7 @@ func (r *SilenceRepository) List(ctx context.Context, flt silence.Filter) ([]sil
 	if len(flt.Match) != 0 {
 		labelsJSON, err := json.Marshal(flt.Match)
 		if err != nil {
-			return nil, errors.ErrInvalid.WithCausef("problem marshalling json match to string with err: %s", err.Error())
+			return nil, errors.ErrInvalid.WithMsgf("problem marshalling json match to string with err: %s", err.Error())
 		}
 		queryBuilder = queryBuilder.Where(fmt.Sprintf("target_expression @> '%s'::jsonb", string(json.RawMessage(labelsJSON))))
 	}
@@ -104,7 +104,7 @@ func (r *SilenceRepository) List(ctx context.Context, flt silence.Filter) ([]sil
 	if len(flt.SubscriptionMatch) != 0 {
 		labelsJSON, err := json.Marshal(flt.SubscriptionMatch)
 		if err != nil {
-			return nil, errors.ErrInvalid.WithCausef("problem marshalling json subscription labels to string with err: %s", err.Error())
+			return nil, errors.ErrInvalid.WithMsgf("problem marshalling json subscription labels to string with err: %s", err.Error())
 		}
 		queryBuilder = queryBuilder.Where(fmt.Sprintf("target_expression <@ '%s'::jsonb", string(json.RawMessage(labelsJSON))))
 	}

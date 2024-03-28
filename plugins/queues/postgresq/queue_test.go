@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/goto/salt/db"
 	"github.com/goto/salt/dockertestx"
@@ -17,6 +19,62 @@ import (
 	"github.com/goto/siren/plugins/queues/postgresq/migrations"
 	"github.com/ory/dockertest/v3"
 	"github.com/stretchr/testify/suite"
+)
+
+var (
+	timeNow         = time.Now()
+	notificationIDs = []string{
+		uuid.NewString(),
+		uuid.NewString(),
+		uuid.NewString(),
+	}
+
+	messagesGenerator = func() []notification.Message {
+		return []notification.Message{
+			{
+				ID:             uuid.NewString(),
+				NotificationID: notificationIDs[0],
+				ReceiverType:   receiver.TypeSlack,
+				Status:         notification.MessageStatusEnqueued,
+				Details:        map[string]any{},
+				CreatedAt:      timeNow,
+				UpdatedAt:      timeNow,
+			},
+			{
+				ID:             uuid.NewString(),
+				NotificationID: notificationIDs[0],
+				ReceiverType:   receiver.TypeSlack,
+				Status:         notification.MessageStatusEnqueued,
+				Details:        map[string]any{},
+				CreatedAt:      timeNow,
+				UpdatedAt:      timeNow,
+			},
+			{
+				ID:             uuid.NewString(),
+				NotificationID: notificationIDs[1],
+				ReceiverType:   receiver.TypeSlack,
+				Status:         notification.MessageStatusEnqueued,
+				CreatedAt:      timeNow,
+				UpdatedAt:      timeNow,
+			},
+			{
+				ID:             uuid.NewString(),
+				NotificationID: notificationIDs[1],
+				ReceiverType:   receiver.TypeSlack,
+				Status:         notification.MessageStatusEnqueued,
+				CreatedAt:      timeNow,
+				UpdatedAt:      timeNow,
+			},
+			{
+				ID:             uuid.NewString(),
+				NotificationID: notificationIDs[2],
+				ReceiverType:   receiver.TypeSlack,
+				Status:         notification.MessageStatusEnqueued,
+				CreatedAt:      timeNow,
+				UpdatedAt:      timeNow,
+			},
+		}
+	}
 )
 
 type QueueTestSuite struct {
@@ -95,60 +153,6 @@ func (s *QueueTestSuite) cleanup() error {
 }
 
 func (s *QueueTestSuite) TestSimpleEnqueueDequeue() {
-	var (
-		timeNow         = time.Now()
-		notificationIDs = []string{
-			uuid.NewString(),
-			uuid.NewString(),
-			uuid.NewString(),
-		}
-	)
-
-	messagesGenerator := func() []notification.Message {
-		return []notification.Message{
-			{
-				ID:             uuid.NewString(),
-				NotificationID: notificationIDs[0],
-				ReceiverType:   receiver.TypeSlack,
-				Status:         notification.MessageStatusEnqueued,
-				CreatedAt:      timeNow,
-				UpdatedAt:      timeNow,
-			},
-			{
-				ID:             uuid.NewString(),
-				NotificationID: notificationIDs[0],
-				ReceiverType:   receiver.TypeSlack,
-				Status:         notification.MessageStatusEnqueued,
-				CreatedAt:      timeNow,
-				UpdatedAt:      timeNow,
-			},
-			{
-				ID:             uuid.NewString(),
-				NotificationID: notificationIDs[1],
-				ReceiverType:   receiver.TypeSlack,
-				Status:         notification.MessageStatusEnqueued,
-				CreatedAt:      timeNow,
-				UpdatedAt:      timeNow,
-			},
-			{
-				ID:             uuid.NewString(),
-				NotificationID: notificationIDs[1],
-				ReceiverType:   receiver.TypeSlack,
-				Status:         notification.MessageStatusEnqueued,
-				CreatedAt:      timeNow,
-				UpdatedAt:      timeNow,
-			},
-			{
-				ID:             uuid.NewString(),
-				NotificationID: notificationIDs[2],
-				ReceiverType:   receiver.TypeSlack,
-				Status:         notification.MessageStatusEnqueued,
-				CreatedAt:      timeNow,
-				UpdatedAt:      timeNow,
-			},
-		}
-	}
-
 	s.Run("should return no error if all messages are successfully processed", func() {
 		messages := messagesGenerator()
 		handlerFn := func(ctx context.Context, messages []notification.Message) error {
@@ -293,6 +297,32 @@ func (s *QueueTestSuite) TestEnqueueDequeueDLQ() {
 		s.Assert().Equal(1, tempMessage.TryCount)
 
 		s.Require().NoError(s.cleanup())
+	})
+}
+
+func (s *QueueTestSuite) TestListNotificationMessages() {
+
+	s.Run("should return all enqueued notifications with specific notification_id", func() {
+
+		messages := messagesGenerator()
+		s.Require().NoError(s.q.Enqueue(s.ctx, messages...))
+
+		expectedMessages := []notification.Message{}
+		for _, msg := range messages {
+			if msg.NotificationID == messages[0].NotificationID {
+				expectedMessages = append(expectedMessages, msg)
+			}
+		}
+
+		result, err := s.q.ListMessages(context.Background(), messages[0].NotificationID)
+		s.Require().NoError(err)
+
+		if diff := cmp.Diff(result, expectedMessages,
+			cmpopts.IgnoreUnexported(notification.Message{}),
+			cmpopts.IgnoreFields(notification.Message{}, "CreatedAt", "UpdatedAt"),
+		); diff != "" {
+			s.Assert().Fail(diff)
+		}
 	})
 }
 

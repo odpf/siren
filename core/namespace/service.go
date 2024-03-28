@@ -50,7 +50,7 @@ func (s *Service) List(ctx context.Context) ([]Namespace, error) {
 
 func (s *Service) Create(ctx context.Context, ns *Namespace) error {
 	if ns == nil {
-		return errors.ErrInvalid.WithCausef("namespace is nil").WithMsgf("incoming namespace is empty")
+		return errors.ErrInvalid.WithMsgf("incoming namespace is empty")
 	}
 
 	prov, err := s.providerService.Get(ctx, ns.Provider.ID)
@@ -121,7 +121,7 @@ func (s *Service) Get(ctx context.Context, id uint64) (*Namespace, error) {
 
 func (s *Service) Update(ctx context.Context, ns *Namespace) error {
 	if ns == nil {
-		return errors.ErrInvalid.WithCausef("namespace is nil").WithMsgf("incoming namespace is empty")
+		return errors.ErrInvalid.WithMsgf("incoming namespace is empty")
 	}
 
 	encryptedNS, err := s.repository.Get(ctx, ns.ID)

@@ -14,6 +14,7 @@ type Notifier interface {
 }
 
 type Queuer interface {
+	ListMessages(ctx context.Context, notificationID string) ([]Message, error)
 	Enqueue(ctx context.Context, ms ...Message) error
 	Dequeue(ctx context.Context, receiverTypes []string, batchSize int, handlerFn func(context.Context, []Message) error) error
 	SuccessCallback(ctx context.Context, ms Message) error

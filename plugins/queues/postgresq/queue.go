@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/goto/salt/db"
 	"github.com/goto/salt/log"
 	"github.com/goto/siren/core/notification"
@@ -50,6 +51,21 @@ INSERT INTO %s
 	(id, notification_id, status, receiver_type, configs, details, last_error, max_tries, try_count, retryable, expired_at, created_at, updated_at)
     VALUES (:id,:notification_id,:status,:receiver_type,:configs,:details,:last_error,:max_tries,:try_count,:retryable,:expired_at,:created_at,:updated_at)
 `, MessageQueueTableFullName)
+
+	messagesListQueryBuilder = sq.Select(
+		"id",
+		"notification_id",
+		"status",
+		"receiver_type",
+		"details",
+		"last_error",
+		"max_tries",
+		"try_count",
+		"retryable",
+		"expired_at",
+		"created_at",
+		"updated_at",
+	).From(MessageQueueTableFullName)
 )
 
 func getQueueDequeueQuery(batchSize int, receiverTypesList string) string {
@@ -221,6 +237,33 @@ func (q *Queue) ErrorCallback(ctx context.Context, ms notification.Message) erro
 // Stop will close the db
 func (q *Queue) Stop(ctx context.Context) error {
 	return q.pgClient.Close()
+}
+
+func (q *Queue) ListMessages(ctx context.Context, notificationID string) ([]notification.Message, error) {
+	var queryBuilder = messagesListQueryBuilder.Where("notification_id = ?", notificationID)
+
+	query, args, err := queryBuilder.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := q.pgClient.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	messagesDomain := []notification.Message{}
+	for rows.Next() {
+		var messageModel NotificationMessage
+		if err := rows.StructScan(&messageModel); err != nil {
+			return nil, err
+		}
+
+		messagesDomain = append(messagesDomain, messageModel.ToDomain())
+	}
+
+	return messagesDomain, nil
 }
 
 func getFilterReceiverTypes(receiverTypes []string) string {

@@ -228,6 +228,65 @@ func (_c *Queuer_ErrorCallback_Call) RunAndReturn(run func(context.Context, noti
 	return _c
 }
 
+// ListMessages provides a mock function with given fields: ctx, notificationID
+func (_m *Queuer) ListMessages(ctx context.Context, notificationID string) ([]notification.Message, error) {
+	ret := _m.Called(ctx, notificationID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListMessages")
+	}
+
+	var r0 []notification.Message
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]notification.Message, error)); ok {
+		return rf(ctx, notificationID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []notification.Message); ok {
+		r0 = rf(ctx, notificationID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]notification.Message)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, notificationID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Queuer_ListMessages_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListMessages'
+type Queuer_ListMessages_Call struct {
+	*mock.Call
+}
+
+// ListMessages is a helper method to define mock.On call
+//   - ctx context.Context
+//   - notificationID string
+func (_e *Queuer_Expecter) ListMessages(ctx interface{}, notificationID interface{}) *Queuer_ListMessages_Call {
+	return &Queuer_ListMessages_Call{Call: _e.mock.On("ListMessages", ctx, notificationID)}
+}
+
+func (_c *Queuer_ListMessages_Call) Run(run func(ctx context.Context, notificationID string)) *Queuer_ListMessages_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *Queuer_ListMessages_Call) Return(_a0 []notification.Message, _a1 error) *Queuer_ListMessages_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Queuer_ListMessages_Call) RunAndReturn(run func(context.Context, string) ([]notification.Message, error)) *Queuer_ListMessages_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Stop provides a mock function with given fields: ctx
 func (_m *Queuer) Stop(ctx context.Context) error {
 	ret := _m.Called(ctx)

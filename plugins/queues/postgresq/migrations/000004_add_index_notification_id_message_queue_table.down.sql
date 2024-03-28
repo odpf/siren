@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS message_queue_notification_id_idx;

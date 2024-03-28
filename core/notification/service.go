@@ -257,6 +257,10 @@ func (s *Service) RemoveIdempotencies(ctx context.Context, TTL time.Duration) er
 	})
 }
 
+func (s *Service) ListNotificationMessages(ctx context.Context, notificationID string) ([]Message, error) {
+	return s.q.ListMessages(ctx, notificationID)
+}
+
 // Transform alerts and populate Data and Labels to be interpolated to the system-default template
 // .Data
 // - id

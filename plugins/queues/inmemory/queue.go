@@ -89,6 +89,10 @@ func (q *Queue) Cleanup(ctx context.Context, filter queues.FilterCleanup) error 
 	return plugins.ErrNotImplemented
 }
 
+func (q *Queue) ListMessages(ctx context.Context, notificationID string) ([]notification.Message, error) {
+	return []notification.Message{}, nil
+}
+
 // Stop is a inmemmory queue function
 // this will close the channel to simulate queue
 func (q *Queue) Stop(ctx context.Context) error {

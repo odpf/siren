@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS message_queue_notification_id_idx ON message_queue (notification_id);

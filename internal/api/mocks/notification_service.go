@@ -251,6 +251,65 @@ func (_c *NotificationService_InsertIdempotency_Call) RunAndReturn(run func(cont
 	return _c
 }
 
+// ListNotificationMessages provides a mock function with given fields: ctx, notificationID
+func (_m *NotificationService) ListNotificationMessages(ctx context.Context, notificationID string) ([]notification.Message, error) {
+	ret := _m.Called(ctx, notificationID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListNotificationMessages")
+	}
+
+	var r0 []notification.Message
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]notification.Message, error)); ok {
+		return rf(ctx, notificationID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []notification.Message); ok {
+		r0 = rf(ctx, notificationID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]notification.Message)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, notificationID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// NotificationService_ListNotificationMessages_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListNotificationMessages'
+type NotificationService_ListNotificationMessages_Call struct {
+	*mock.Call
+}
+
+// ListNotificationMessages is a helper method to define mock.On call
+//   - ctx context.Context
+//   - notificationID string
+func (_e *NotificationService_Expecter) ListNotificationMessages(ctx interface{}, notificationID interface{}) *NotificationService_ListNotificationMessages_Call {
+	return &NotificationService_ListNotificationMessages_Call{Call: _e.mock.On("ListNotificationMessages", ctx, notificationID)}
+}
+
+func (_c *NotificationService_ListNotificationMessages_Call) Run(run func(ctx context.Context, notificationID string)) *NotificationService_ListNotificationMessages_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *NotificationService_ListNotificationMessages_Call) Return(_a0 []notification.Message, _a1 error) *NotificationService_ListNotificationMessages_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *NotificationService_ListNotificationMessages_Call) RunAndReturn(run func(context.Context, string) ([]notification.Message, error)) *NotificationService_ListNotificationMessages_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveIdempotencies provides a mock function with given fields: ctx, TTL
 func (_m *NotificationService) RemoveIdempotencies(ctx context.Context, TTL time.Duration) error {
 	ret := _m.Called(ctx, TTL)

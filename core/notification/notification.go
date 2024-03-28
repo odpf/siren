@@ -63,13 +63,13 @@ func (n Notification) Validate(flow string) error {
 		if len(n.ReceiverSelectors) != 0 {
 			return nil
 		}
-		return errors.ErrInvalid.WithCausef("notification type receiver should have receiver_selectors: %v", n)
+		return errors.ErrInvalid.WithMsgf("notification type receiver should have receiver_selectors: %v", n)
 	} else if flow == FlowSubscriber {
 		if len(n.Labels) != 0 {
 			return nil
 		}
-		return errors.ErrInvalid.WithCausef("notification type subscriber should have labels: %v", n)
+		return errors.ErrInvalid.WithMsgf("notification type subscriber should have labels: %v", n)
 	}
 
-	return errors.ErrInvalid.WithCausef("invalid notification type: %v", n)
+	return errors.ErrInvalid.WithMsgf("invalid notification type: %v", n)
 }

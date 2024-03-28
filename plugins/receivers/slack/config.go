@@ -41,7 +41,7 @@ func (c *ReceiverConfig) Validate() error {
 	if c.Token != "" && c.Workspace != "" {
 		return nil
 	}
-	return errors.ErrInvalid.WithCausef("invalid slack receiver config, workspace: %s, token: %s", c.Workspace, c.Token)
+	return errors.ErrInvalid.WithMsgf("invalid slack receiver config, workspace: %s, token: %s", c.Workspace, c.Token)
 }
 
 func (c *ReceiverConfig) AsMap() map[string]any {

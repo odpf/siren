@@ -95,7 +95,7 @@ func (r *IdempotencyRepository) Check(ctx context.Context, scope, key string) (*
 func (r *IdempotencyRepository) Delete(ctx context.Context, filter notification.IdempotencyFilter) error {
 
 	if filter.TTL == 0 {
-		return errors.ErrInvalid.WithCausef("cannot delete with ttl 0")
+		return errors.ErrInvalid.WithMsgf("cannot delete with ttl 0")
 	}
 
 	ttlInSecond := int(filter.TTL.Seconds())

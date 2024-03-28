@@ -46,7 +46,6 @@ func (s *GRPCServer) PostNotification(ctx context.Context, req *sirenv1beta1.Pos
 		receiverSelectors = append(receiverSelectors, mss)
 	}
 
-	// TODO once custom template is supported, this needs to be set
 	var notificationTemplate = template.ReservedName_SystemDefault
 	if req.GetTemplate() != "" {
 		notificationTemplate = req.GetTemplate()
@@ -73,5 +72,25 @@ func (s *GRPCServer) PostNotification(ctx context.Context, req *sirenv1beta1.Pos
 
 	return &sirenv1beta1.PostNotificationResponse{
 		NotificationId: notificationID,
+	}, nil
+}
+
+func (s *GRPCServer) ListNotificationMessages(ctx context.Context, req *sirenv1beta1.ListNotificationMessagesRequest) (*sirenv1beta1.ListNotificationMessagesResponse, error) {
+	resp, err := s.notificationService.ListNotificationMessages(ctx, req.GetNotificationId())
+	if err != nil {
+		return nil, s.generateRPCErr(err)
+	}
+
+	items := []*sirenv1beta1.NotificationMessage{}
+	for _, msg := range resp {
+		item, err := msg.ToV1beta1Proto()
+		if err != nil {
+			return nil, s.generateRPCErr(err)
+		}
+
+		items = append(items, item)
+	}
+	return &sirenv1beta1.ListNotificationMessagesResponse{
+		Messages: items,
 	}, nil
 }

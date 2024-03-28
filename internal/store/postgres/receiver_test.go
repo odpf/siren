@@ -579,7 +579,7 @@ func (s *ReceiverRepositoryTestSuite) TestPatchLabels() {
 		{
 			Description:     "should return error not found if receiver is nil",
 			ReceiverToPatch: nil,
-			ErrString:       "request is not valid",
+			ErrString:       "receiver cannot be nil",
 		},
 	}
 

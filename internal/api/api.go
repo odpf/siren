@@ -71,6 +71,7 @@ type NotificationService interface {
 	BuildFromAlerts(alerts []alert.Alert, firingLen int, createdTime time.Time) ([]notification.Notification, error)
 	CheckIdempotency(ctx context.Context, scope, key string) (string, error)
 	InsertIdempotency(ctx context.Context, scope, key, notificationID string) error
+	ListNotificationMessages(ctx context.Context, notificationID string) ([]notification.Message, error)
 }
 
 type SilenceService interface {
