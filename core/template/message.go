@@ -20,11 +20,11 @@ func MessageContentByReceiverType(messagesTemplate []Message, receiverType strin
 
 	content, ok := messageTemplateMap[receiverTypeKey]
 	if !ok {
-		errors.ErrInvalid.WithCausef("can't found template of receiver type %s", receiverType)
+		errors.ErrInvalid.WithMsgf("can't found template of receiver type %s", receiverType)
 	}
 
 	if content == "" {
-		return "", errors.ErrInvalid.WithCausef("%s template is empty", receiverType)
+		return "", errors.ErrInvalid.WithMsgf("%s template is empty", receiverType)
 	}
 
 	return content, nil
