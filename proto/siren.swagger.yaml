@@ -1288,6 +1288,8 @@ definitions:
       updated_at:
         type: string
         format: date-time
+      configs:
+        type: object
   NotifyReceiverResponse:
     type: object
   NullValue:

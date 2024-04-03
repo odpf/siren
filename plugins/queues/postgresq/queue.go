@@ -57,6 +57,7 @@ INSERT INTO %s
 		"notification_id",
 		"status",
 		"receiver_type",
+		"configs",
 		"details",
 		"last_error",
 		"max_tries",

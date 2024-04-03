@@ -13,12 +13,17 @@ func (m *Message) ToV1beta1Proto() (*sirenv1beta1.NotificationMessage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch notification message details: %w", err)
 	}
+	configs, err := structpb.NewStruct(m.Configs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch notification message details: %w", err)
+	}
 
 	return &sirenv1beta1.NotificationMessage{
 		Id:             m.ID,
 		NotificationId: m.NotificationID,
 		Status:         m.Status.String(),
 		ReceiverType:   m.ReceiverType,
+		Configs:        configs,
 		Details:        details,
 		LastError:      m.LastError,
 		MaxTries:       uint64(m.MaxTries),

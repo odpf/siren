@@ -258,7 +258,32 @@ func (s *Service) RemoveIdempotencies(ctx context.Context, TTL time.Duration) er
 }
 
 func (s *Service) ListNotificationMessages(ctx context.Context, notificationID string) ([]Message, error) {
-	return s.q.ListMessages(ctx, notificationID)
+	messages, err := s.q.ListMessages(ctx, notificationID)
+	if err != nil {
+		return nil, err
+	}
+
+	messages = s.discardSecrets(messages)
+
+	return messages, nil
+}
+
+// TODO might want to do smarter way to discard secrets
+func (s *Service) discardSecrets(messages []Message) []Message {
+	newMessages := make([]Message, 0)
+
+	for _, msg := range messages {
+		newMsg := msg
+		cfg := newMsg.Configs
+		// slack token
+		delete(cfg, "token")
+		// pagerduty service key
+		delete(cfg, "service_key")
+		newMsg.Configs = cfg
+		newMessages = append(newMessages, newMsg)
+	}
+
+	return newMessages
 }
 
 // Transform alerts and populate Data and Labels to be interpolated to the system-default template
