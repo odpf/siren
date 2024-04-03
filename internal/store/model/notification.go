@@ -50,8 +50,8 @@ func (n *Notification) FromDomain(d notification.Notification) {
 	n.ReceiverSelectors = d.ReceiverSelectors
 }
 
-func (n *Notification) ToDomain() notification.Notification {
-	return notification.Notification{
+func (n *Notification) ToDomain() *notification.Notification {
+	return &notification.Notification{
 		ID:                n.ID,
 		NamespaceID:       uint64(n.NamespaceID.Int64),
 		Type:              n.Type,

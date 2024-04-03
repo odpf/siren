@@ -373,3 +373,12 @@ func (s *Service) BuildFromAlerts(
 
 	return notifications, nil
 }
+
+func (s *Service) List(ctx context.Context, flt Filter) ([]Notification, error) {
+	notifications, err := s.repository.List(ctx, flt)
+	if err != nil {
+		return nil, err
+	}
+
+	return notifications, err
+}

@@ -11758,3 +11758,583 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListNotificationMessagesResponseValidationError{}
+
+// Validate checks the field values on ListNotificationsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListNotificationsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListNotificationsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListNotificationsRequestMultiError, or nil if none found.
+func (m *ListNotificationsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListNotificationsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Type
+
+	// no validation rules for Template
+
+	// no validation rules for Labels
+
+	// no validation rules for ReceiverSelectors
+
+	if len(errors) > 0 {
+		return ListNotificationsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListNotificationsRequestMultiError is an error wrapping multiple validation
+// errors returned by ListNotificationsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ListNotificationsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListNotificationsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListNotificationsRequestMultiError) AllErrors() []error { return m }
+
+// ListNotificationsRequestValidationError is the validation error returned by
+// ListNotificationsRequest.Validate if the designated constraints aren't met.
+type ListNotificationsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListNotificationsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListNotificationsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListNotificationsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListNotificationsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListNotificationsRequestValidationError) ErrorName() string {
+	return "ListNotificationsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListNotificationsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListNotificationsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListNotificationsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListNotificationsRequestValidationError{}
+
+// Validate checks the field values on ReceiverSelector with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ReceiverSelector) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ReceiverSelector with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ReceiverSelectorMultiError, or nil if none found.
+func (m *ReceiverSelector) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ReceiverSelector) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ReceiverSelector
+
+	if len(errors) > 0 {
+		return ReceiverSelectorMultiError(errors)
+	}
+
+	return nil
+}
+
+// ReceiverSelectorMultiError is an error wrapping multiple validation errors
+// returned by ReceiverSelector.ValidateAll() if the designated constraints
+// aren't met.
+type ReceiverSelectorMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ReceiverSelectorMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ReceiverSelectorMultiError) AllErrors() []error { return m }
+
+// ReceiverSelectorValidationError is the validation error returned by
+// ReceiverSelector.Validate if the designated constraints aren't met.
+type ReceiverSelectorValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ReceiverSelectorValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ReceiverSelectorValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ReceiverSelectorValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ReceiverSelectorValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ReceiverSelectorValidationError) ErrorName() string { return "ReceiverSelectorValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ReceiverSelectorValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sReceiverSelector.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ReceiverSelectorValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ReceiverSelectorValidationError{}
+
+// Validate checks the field values on Notification with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Notification) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Notification with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in NotificationMultiError, or
+// nil if none found.
+func (m *Notification) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Notification) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for NamespaceId
+
+	// no validation rules for Type
+
+	if all {
+		switch v := interface{}(m.GetData()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, NotificationValidationError{
+					field:  "Data",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, NotificationValidationError{
+					field:  "Data",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetData()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return NotificationValidationError{
+				field:  "Data",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Labels
+
+	if all {
+		switch v := interface{}(m.GetValidDuration()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, NotificationValidationError{
+					field:  "ValidDuration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, NotificationValidationError{
+					field:  "ValidDuration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetValidDuration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return NotificationValidationError{
+				field:  "ValidDuration",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Template
+
+	if all {
+		switch v := interface{}(m.GetCreateAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, NotificationValidationError{
+					field:  "CreateAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, NotificationValidationError{
+					field:  "CreateAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreateAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return NotificationValidationError{
+				field:  "CreateAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for UniqueKey
+
+	for idx, item := range m.GetReceiverSelectors() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, NotificationValidationError{
+						field:  fmt.Sprintf("ReceiverSelectors[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, NotificationValidationError{
+						field:  fmt.Sprintf("ReceiverSelectors[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return NotificationValidationError{
+					field:  fmt.Sprintf("ReceiverSelectors[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return NotificationMultiError(errors)
+	}
+
+	return nil
+}
+
+// NotificationMultiError is an error wrapping multiple validation errors
+// returned by Notification.ValidateAll() if the designated constraints aren't met.
+type NotificationMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m NotificationMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m NotificationMultiError) AllErrors() []error { return m }
+
+// NotificationValidationError is the validation error returned by
+// Notification.Validate if the designated constraints aren't met.
+type NotificationValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e NotificationValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e NotificationValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e NotificationValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e NotificationValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e NotificationValidationError) ErrorName() string { return "NotificationValidationError" }
+
+// Error satisfies the builtin error interface
+func (e NotificationValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sNotification.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = NotificationValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = NotificationValidationError{}
+
+// Validate checks the field values on ListNotificationsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListNotificationsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListNotificationsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListNotificationsResponseMultiError, or nil if none found.
+func (m *ListNotificationsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListNotificationsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetNotifications() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListNotificationsResponseValidationError{
+						field:  fmt.Sprintf("Notifications[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListNotificationsResponseValidationError{
+						field:  fmt.Sprintf("Notifications[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListNotificationsResponseValidationError{
+					field:  fmt.Sprintf("Notifications[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListNotificationsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListNotificationsResponseMultiError is an error wrapping multiple validation
+// errors returned by ListNotificationsResponse.ValidateAll() if the
+// designated constraints aren't met.
+type ListNotificationsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListNotificationsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListNotificationsResponseMultiError) AllErrors() []error { return m }
+
+// ListNotificationsResponseValidationError is the validation error returned by
+// ListNotificationsResponse.Validate if the designated constraints aren't met.
+type ListNotificationsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListNotificationsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListNotificationsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListNotificationsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListNotificationsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListNotificationsResponseValidationError) ErrorName() string {
+	return "ListNotificationsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListNotificationsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListNotificationsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListNotificationsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListNotificationsResponseValidationError{}

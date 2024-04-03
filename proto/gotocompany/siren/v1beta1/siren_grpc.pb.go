@@ -60,6 +60,7 @@ type SirenServiceClient interface {
 	ExpireSilence(ctx context.Context, in *ExpireSilenceRequest, opts ...grpc.CallOption) (*ExpireSilenceResponse, error)
 	PostNotification(ctx context.Context, in *PostNotificationRequest, opts ...grpc.CallOption) (*PostNotificationResponse, error)
 	ListNotificationMessages(ctx context.Context, in *ListNotificationMessagesRequest, opts ...grpc.CallOption) (*ListNotificationMessagesResponse, error)
+	ListNotifications(ctx context.Context, in *ListNotificationsRequest, opts ...grpc.CallOption) (*ListNotificationsResponse, error)
 }
 
 type sirenServiceClient struct {
@@ -404,6 +405,15 @@ func (c *sirenServiceClient) ListNotificationMessages(ctx context.Context, in *L
 	return out, nil
 }
 
+func (c *sirenServiceClient) ListNotifications(ctx context.Context, in *ListNotificationsRequest, opts ...grpc.CallOption) (*ListNotificationsResponse, error) {
+	out := new(ListNotificationsResponse)
+	err := c.cc.Invoke(ctx, "/gotocompany.siren.v1beta1.SirenService/ListNotifications", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SirenServiceServer is the server API for SirenService service.
 // All implementations must embed UnimplementedSirenServiceServer
 // for forward compatibility
@@ -446,6 +456,7 @@ type SirenServiceServer interface {
 	ExpireSilence(context.Context, *ExpireSilenceRequest) (*ExpireSilenceResponse, error)
 	PostNotification(context.Context, *PostNotificationRequest) (*PostNotificationResponse, error)
 	ListNotificationMessages(context.Context, *ListNotificationMessagesRequest) (*ListNotificationMessagesResponse, error)
+	ListNotifications(context.Context, *ListNotificationsRequest) (*ListNotificationsResponse, error)
 	mustEmbedUnimplementedSirenServiceServer()
 }
 
@@ -563,6 +574,9 @@ func (UnimplementedSirenServiceServer) PostNotification(context.Context, *PostNo
 }
 func (UnimplementedSirenServiceServer) ListNotificationMessages(context.Context, *ListNotificationMessagesRequest) (*ListNotificationMessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListNotificationMessages not implemented")
+}
+func (UnimplementedSirenServiceServer) ListNotifications(context.Context, *ListNotificationsRequest) (*ListNotificationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListNotifications not implemented")
 }
 func (UnimplementedSirenServiceServer) mustEmbedUnimplementedSirenServiceServer() {}
 
@@ -1243,6 +1257,24 @@ func _SirenService_ListNotificationMessages_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SirenService_ListNotifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNotificationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SirenServiceServer).ListNotifications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gotocompany.siren.v1beta1.SirenService/ListNotifications",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SirenServiceServer).ListNotifications(ctx, req.(*ListNotificationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SirenService_ServiceDesc is the grpc.ServiceDesc for SirenService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1397,6 +1429,10 @@ var SirenService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListNotificationMessages",
 			Handler:    _SirenService_ListNotificationMessages_Handler,
+		},
+		{
+			MethodName: "ListNotifications",
+			Handler:    _SirenService_ListNotifications_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

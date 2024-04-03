@@ -5,11 +5,13 @@ import (
 	"testing"
 
 	"github.com/goto/salt/log"
+	"github.com/goto/siren/core/notification"
 	"github.com/goto/siren/internal/api"
 	"github.com/goto/siren/internal/api/mocks"
 	"github.com/goto/siren/internal/api/v1beta1"
 	"github.com/goto/siren/pkg/errors"
 	sirenv1beta1 "github.com/goto/siren/proto/gotocompany/siren/v1beta1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/metadata"
 )
@@ -104,4 +106,40 @@ func TestGRPCServer_PostNotification(t *testing.T) {
 			mockNotificationService.AssertExpectations(t)
 		})
 	}
+}
+
+func TestGRPCServer_ListNotifications(t *testing.T) {
+	ctx := context.TODO()
+
+	t.Run("should return list of notifications with type reciever", func(t *testing.T) {
+		dummyResult := []notification.Notification{
+			{
+				NamespaceID: 1,
+				Type:        "reciever",
+				Template:    "",
+				Data: map[string]any{
+					"data-key": "data-value",
+				},
+				Labels:            map[string]string{},
+				ReceiverSelectors: []map[string]string{},
+			},
+		}
+
+		mockNotificationService := &mocks.NotificationService{}
+		dummyGRPCServer := v1beta1.NewGRPCServer(log.NewNoop(), api.HeadersConfig{}, &api.Deps{NotificationService: mockNotificationService})
+		mockNotificationService.EXPECT().List(mock.AnythingOfType("context.todoCtx"), notification.Filter{Type: "reciever"}).Return(dummyResult, nil).Once()
+		res, err := dummyGRPCServer.ListNotifications(ctx, &sirenv1beta1.ListNotificationsRequest{Type: "reciever"})
+		assert.Nil(t, err)
+		assert.Equal(t, 1, len(res.GetNotifications()))
+		assert.Equal(t, "reciever", res.GetNotifications()[0].Type)
+	})
+
+	t.Run("should return error if list notifications failed", func(t *testing.T) {
+		mockNotificationService := &mocks.NotificationService{}
+		dummyGRPCServer := v1beta1.NewGRPCServer(log.NewNoop(), api.HeadersConfig{}, &api.Deps{NotificationService: mockNotificationService})
+		mockNotificationService.EXPECT().List(mock.AnythingOfType("context.todoCtx"), notification.Filter{Type: "alert"}).Return(nil, errors.New("internal server error")).Once()
+		res, err := dummyGRPCServer.ListNotifications(ctx, &sirenv1beta1.ListNotificationsRequest{Type: "alert"})
+		assert.Nil(t, res)
+		assert.EqualError(t, err, "rpc error: code = Internal desc = some unexpected error occurred")
+	})
 }

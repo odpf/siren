@@ -241,6 +241,29 @@ paths:
       tags:
         - Namespace
   /v1beta1/notifications:
+    get:
+      summary: List notifications
+      operationId: SirenService_ListNotifications
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListNotificationsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: type
+          in: query
+          required: false
+          type: string
+        - name: template
+          in: query
+          required: false
+          type: string
+      tags:
+        - Notifications
     post:
       summary: Post an event notification
       operationId: SirenService_PostNotification
@@ -1183,6 +1206,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/NotificationMessage'
+  ListNotificationsResponse:
+    type: object
+    properties:
+      notifications:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Notification'
   ListProvidersResponse:
     type: object
     properties:
@@ -1256,6 +1287,36 @@ definitions:
       updated_at:
         type: string
         format: date-time
+  Notification:
+    type: object
+    properties:
+      id:
+        type: string
+      namespace_id:
+        type: string
+        format: uint64
+      type:
+        type: string
+      data:
+        type: object
+      labels:
+        type: object
+        additionalProperties:
+          type: string
+      valid_duration:
+        type: string
+      template:
+        type: string
+      create_at:
+        type: string
+        format: date-time
+      unique_key:
+        type: string
+      receiver_selectors:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/ReceiverSelector'
   NotificationMessage:
     type: object
     properties:
@@ -1385,6 +1446,13 @@ definitions:
         format: uint64
       configuration:
         type: object
+  ReceiverSelector:
+    type: object
+    properties:
+      receiver_selector:
+        type: object
+        additionalProperties:
+          type: string
   RenderTemplateResponse:
     type: object
     properties:

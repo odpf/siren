@@ -9,6 +9,9 @@ import (
 	"github.com/goto/siren/internal/api"
 	"github.com/goto/siren/pkg/errors"
 	sirenv1beta1 "github.com/goto/siren/proto/gotocompany/siren/v1beta1"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const notificationAPIScope = "notification_api"
@@ -92,5 +95,42 @@ func (s *GRPCServer) ListNotificationMessages(ctx context.Context, req *sirenv1b
 	}
 	return &sirenv1beta1.ListNotificationMessagesResponse{
 		Messages: items,
+	}, nil
+}
+
+func (s *GRPCServer) ListNotifications(ctx context.Context, req *sirenv1beta1.ListNotificationsRequest) (*sirenv1beta1.ListNotificationsResponse, error) {
+	notifications, err := s.notificationService.List(ctx, notification.Filter{
+		Type:             req.GetType(),
+		Template:         req.GetTemplate(),
+		Labels:           req.GetLabels(),
+		ReceiverSelector: req.GetReceiverSelectors(),
+	})
+	if err != nil {
+		return nil, s.generateRPCErr(err)
+	}
+
+	items := []*sirenv1beta1.Notification{}
+
+	for _, notification := range notifications {
+		data, err := structpb.NewStruct(notification.Data)
+		if err != nil {
+			return nil, s.generateRPCErr(err)
+		}
+
+		item := &sirenv1beta1.Notification{
+			Id:            notification.ID,
+			NamespaceId:   notification.NamespaceID,
+			Type:          notification.Type,
+			Data:          data,
+			Labels:        notification.Labels,
+			ValidDuration: durationpb.New(notification.ValidDuration),
+			Template:      notification.Template,
+			CreateAt:      timestamppb.New(notification.CreatedAt),
+			UniqueKey:     notification.UniqueKey,
+		}
+		items = append(items, item)
+	}
+	return &sirenv1beta1.ListNotificationsResponse{
+		Notifications: items,
 	}, nil
 }

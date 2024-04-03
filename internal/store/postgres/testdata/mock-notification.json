@@ -2,7 +2,7 @@
     {
         "id": "123",
         "namespace_id": 1,
-        "type": "receiver",
+        "type": "event",
         "data": {
             "data-key": "data-value"
         },
@@ -12,7 +12,7 @@
     {
         "id": "456",
         "namespace_id": 1,
-        "type": "subscriber",
+        "type": "alert",
         "data": {
             "data-key": "data-value"
         },
@@ -24,7 +24,7 @@
     {
         "id": "789",
         "namespace_id": 1,
-        "type": "subscriber",
+        "type": "alert",
         "data": {
             "data-key": "data-value"
         },
@@ -41,5 +41,16 @@
                 "id": "2"
             }
         ]
+    },
+    {
+        "id": "10911",
+        "namespace_id": 2,
+        "type": "event",
+        "data": {
+            "data-key": "data-value"
+        },
+        "labels": {},
+        "template": "expiry-alert"
     }
+
 ]

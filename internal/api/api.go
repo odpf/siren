@@ -72,6 +72,7 @@ type NotificationService interface {
 	CheckIdempotency(ctx context.Context, scope, key string) (string, error)
 	InsertIdempotency(ctx context.Context, scope, key, notificationID string) error
 	ListNotificationMessages(ctx context.Context, notificationID string) ([]notification.Message, error)
+	List(ctx context.Context, flt notification.Filter) ([]notification.Notification, error)
 }
 
 type SilenceService interface {

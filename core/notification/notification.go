@@ -20,6 +20,7 @@ const (
 type Repository interface {
 	Transactor
 	Create(context.Context, Notification) (Notification, error)
+	List(context.Context, Filter) ([]Notification, error)
 }
 
 type Transactor interface {
