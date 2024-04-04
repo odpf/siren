@@ -12,7 +12,16 @@ To understand more concepts of notification in Siren, you can visit this [page](
 
 ## Sending a message/notification
 
-We could send a notification to a specific receiver by passing a `receiver_id` in the path params and correct payload format in the body. The payload format needs to follow receiver type contract. 
+We could send a notification with `POST /notifications` API to a specific receiver by passing receiver labels information in the `receivers` field in the body. The payload format needs to follow receiver type contract. 
+
+| Field Name 	| Type 	| Required? 	| Description 	|
+|---	|---	|---	|---	|
+| receivers 	| list of json 	| yes 	| Selector of receivers using receiver labels <pre>[<br> {<br>   "id": 3,    <br>  },<br> {<br>   "type": "slack_channel",<br>   "team": "de-infra"<br> },<br> {<br>   "type": "email",<br>   "team": "de-experience" <br> }<br>]
+</pre> This will fetch all receivers that have the labels. 	|
+| data 	| json 	| yes 	| any data that we want to pass to the message. The data will populate the corresponding template or content variables. 	|
+| template 	| string 	| no 	| template name that will be used to populate the message. default template will be used if this value is empty. errors might be thrown if there are errors when parsing template. 	|
+| labels 	| json 	| no 	| If populated, labels would be used by subscription matchers to find the subscribers that listen to specific labels. e.g. <pre>{<br>  "team": "de-infra",<br>  "severity": "CRITICAL"<br>}</pre>	|
+
 
 ### Example: Sending Notification to Slack
 
@@ -21,50 +30,30 @@ Assuming there is a slack receiver registered in Siren with ID `51`. Sending to 
 ```yaml title=payload.yaml
 payload:
   data:
-    channel: siren-devs
-    text: an alert or notification
-    icon_emoji: ":smile:"
-    attachments:
-      - blocks: 
-        - type: section
-          text:
-            type: mrkdwn
-            text: |-
-              New Paid Time Off request from <example.com|Fred Enriquez>
+    text: |-
+      New Paid Time Off request from <example.com|Fred Enriquez>
 
-              <https://example.com|View request>
+      <https://example.com|View request>
+  template: sample-slack-msg
 ```
 
 <Tabs groupId="api">
   <TabItem value="cli" label="CLI" default>
 
 ```bash
-$ siren receiver send --id 51 --file payload.yaml
+$ siren notifications send --file payload.yaml
 ```
 
   </TabItem>
   <TabItem value="http" label="HTTP">
     <CodeBlock className="language-bash">
     {`$ curl --request POST
-  --url `}{defaultHost}{`/`}{apiVersion}{`/receivers/51/send
+  --url `}{defaultHost}{`/`}{apiVersion}{`/notifications
   --header 'content-type: application/json'
   --data-raw '{
     "payload": {
         "data": {
-            "channel": "siren-devs",
-            "text": "an alert or notification",
-            "icon_emoji": ":smile:"
-            "attachments": [
-                "blocks": [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "New Paid Time Off request from <example.com|Fred Enriquez>\n\n<https://example.com|View request>"
-                        }
-                    }
-                ]
-            ]
+          "text": "New Paid Time Off request from <example.com|Fred Enriquez>\n\n<https://example.com|View request>"
         }
     }
 }'`}
