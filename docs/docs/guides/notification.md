@@ -16,11 +16,11 @@ We could send a notification with `POST /notifications` API to a specific receiv
 
 | Field Name 	| Type 	| Required? 	| Description 	|
 |---	|---	|---	|---	|
-| receivers 	| list of json 	| yes 	| Selector of receivers using receiver labels <pre>[<br> {<br>   "id": 3,    <br>  },<br> {<br>   "type": "slack_channel",<br>   "team": "de-infra"<br> },<br> {<br>   "type": "email",<br>   "team": "de-experience" <br> }<br>]
-</pre> This will fetch all receivers that have the labels. 	|
+| receivers 	| list of json 	| yes 	| Selector of receivers using receiver labels <br/>[<br/> {<br/>   "id": 3,    <br/>  },<br/> {<br/>   "type": "slack_channel",<br/>   "team": "de-infra"<br/> },<br/> {<br/>   "type": "email",<br/>   "team": "de-experience" <br/> }<br/>]<br/>
+ This will fetch all receivers that have the labels. 	|
 | data 	| json 	| yes 	| any data that we want to pass to the message. The data will populate the corresponding template or content variables. 	|
 | template 	| string 	| no 	| template name that will be used to populate the message. default template will be used if this value is empty. errors might be thrown if there are errors when parsing template. 	|
-| labels 	| json 	| no 	| If populated, labels would be used by subscription matchers to find the subscribers that listen to specific labels. e.g. <pre>{<br>  "team": "de-infra",<br>  "severity": "CRITICAL"<br>}</pre>	|
+| labels 	| json 	| no 	| If populated, labels would be used by subscription matchers to find the subscribers that listen to specific labels. e.g. <br/>{<br/>  "team": "de-infra",<br/>  "severity": "CRITICAL"<br/>}	|
 
 
 ### Example: Sending Notification to Slack

@@ -166,15 +166,6 @@ Edit a receiver
 
 List receivers
 
-### `siren receiver send [flags]`
-
-Send a receiver notification
-
-```
--f, --file string   Path to the receiver notification message
-    --id uint       receiver id
-````
-
 ### `siren receiver view [flags]`
 
 View a receiver details
