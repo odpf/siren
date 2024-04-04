@@ -16,6 +16,14 @@ import (
 
 const notificationAPIScope = "notification_api"
 
+func (s *GRPCServer) validatePostNotificationPayload(receiverSelectors []map[string]string, labels map[string]string) error {
+	if len(receiverSelectors) > 0 && len(labels) > 0 {
+		return errors.ErrInvalid.WithMsgf("receivers and labels cannot being used at the same time, should be used either one of them")
+	}
+
+	return nil
+}
+
 func (s *GRPCServer) PostNotification(ctx context.Context, req *sirenv1beta1.PostNotificationRequest) (*sirenv1beta1.PostNotificationResponse, error) {
 	idempotencyScope := api.GetHeaderString(ctx, s.headers.IdempotencyScope)
 	if idempotencyScope == "" {
@@ -47,6 +55,10 @@ func (s *GRPCServer) PostNotification(ctx context.Context, req *sirenv1beta1.Pos
 			mss[k] = vString
 		}
 		receiverSelectors = append(receiverSelectors, mss)
+	}
+
+	if err := s.validatePostNotificationPayload(receiverSelectors, req.GetLabels()); err != nil {
+		return nil, s.generateRPCErr(err)
 	}
 
 	var notificationTemplate = template.ReservedName_SystemDefault

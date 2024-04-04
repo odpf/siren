@@ -88,7 +88,10 @@ func NewService(
 		dispatchSubscriberService = deps.DispatchSubscriberService
 	)
 	if deps.DispatchReceiverService == nil {
-		dispatchReceiverService = NewDispatchReceiverService(deps.ReceiverService, deps.TemplateService, notifierPlugins)
+		dispatchReceiverService = NewDispatchReceiverService(DispatchReceiverConfig{
+			MaxMessagesReceiverFlow: cfg.MaxMessagesReceiverFlow,
+			MaxNumReceiverSelectors: cfg.MaxNumReceiverSelectors,
+		}, deps.ReceiverService, deps.TemplateService, notifierPlugins)
 	}
 	if deps.DispatchSubscriberService == nil {
 		dispatchSubscriberService = NewDispatchSubscriberService(logger, deps.SubscriptionService, deps.SilenceService, deps.TemplateService, notifierPlugins, enableSilenceFeature)

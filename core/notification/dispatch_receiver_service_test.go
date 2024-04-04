@@ -135,6 +135,10 @@ func TestDispatchReceiverService_PrepareMessage(t *testing.T) {
 				mockTemplateService = new(mocks.TemplateService)
 			)
 			s := notification.NewDispatchReceiverService(
+				notification.DispatchReceiverConfig{
+					MaxMessagesReceiverFlow: 10,
+					MaxNumReceiverSelectors: 10,
+				},
 				mockReceiverService,
 				mockTemplateService,
 				map[string]notification.Notifier{

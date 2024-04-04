@@ -202,13 +202,6 @@ If you need to use these characters you are probably better off using one of the
 	time.Sleep(100 * time.Millisecond)
 
 	_, err = s.client.PostNotification(ctx, &sirenv1beta1.PostNotificationRequest{
-		Receivers: []*structpb.Struct{
-			{
-				Fields: map[string]*structpb.Value{
-					"id": structpb.NewStringValue(fmt.Sprintf("%d", rcv.GetId())),
-				},
-			},
-		},
 		Data: &structpb.Struct{
 			Fields: map[string]*structpb.Value{
 				"title":      structpb.NewStringValue("This is the test notification with template"),

@@ -15,7 +15,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/goto/siren/config"
-	"github.com/goto/siren/core/notification"
 	"github.com/goto/siren/internal/server"
 	"github.com/goto/siren/plugins"
 	cortexv1plugin "github.com/goto/siren/plugins/providers/cortex/v1"
@@ -51,14 +50,8 @@ func (s *NotificationReceiverTestSuite) SetupTest() {
 		},
 		EncryptionKey: testEncryptionKey,
 	}
-	s.appConfig.Notification = notification.Config{
-		MessageHandler: notification.HandlerConfig{
-			Enabled: true,
-		},
-		DLQHandler: notification.HandlerConfig{
-			Enabled: false,
-		},
-	}
+	s.appConfig.Notification.MessageHandler.Enabled = true
+	s.appConfig.Notification.DLQHandler.Enabled = false
 	s.appConfig.Telemetry.OpenTelemetry.Enabled = false
 
 	s.testBench, err = InitCortexEnvironment(s.appConfig)
