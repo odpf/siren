@@ -263,7 +263,7 @@ paths:
           required: false
           type: string
       tags:
-        - Notifications
+        - Notification
     post:
       summary: Post an event notification
       operationId: SirenService_PostNotification
