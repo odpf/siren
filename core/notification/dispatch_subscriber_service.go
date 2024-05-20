@@ -8,15 +8,30 @@ import (
 	"github.com/goto/siren/core/log"
 	"github.com/goto/siren/core/silence"
 	"github.com/goto/siren/pkg/errors"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+)
+
+const (
+	metricDispatchSubscriberAttributePrepareMessage = "preparemessage.status"
+	metricDispatchSubscriberAttributePrepareSuccess = "preparemessage.success"
+
+	metricDispatchSubscriberStatusMatchError       = "MATCH_ERROR"
+	metricDispatchSubscriberStatusMatchNotFound    = "MATCH_NOT_FOUND"
+	metricDispatchSubscriberStatusMessageInitError = "MESSAGE_INIT_ERROR"
+	metricDispatchSubscriberStatusNotifierError    = "NOTIFIER_ERROR"
+	metricDispatchSubscriberStatusSuccess          = "SUCCESS"
 )
 
 type DispatchSubscriberService struct {
-	logger               saltlog.Logger
-	subscriptionService  SubscriptionService
-	silenceService       SilenceService
-	templateService      TemplateService
-	notifierPlugins      map[string]Notifier
-	enableSilenceFeature bool
+	logger                          saltlog.Logger
+	subscriptionService             SubscriptionService
+	silenceService                  SilenceService
+	templateService                 TemplateService
+	notifierPlugins                 map[string]Notifier
+	metricCounterDispatchSubscriber metric.Int64Counter
+	enableSilenceFeature            bool
 }
 
 func NewDispatchSubscriberService(
@@ -27,13 +42,19 @@ func NewDispatchSubscriberService(
 	notifierPlugins map[string]Notifier,
 	enableSilenceFeature bool,
 ) *DispatchSubscriberService {
+	metricCounterDispatchSubscriber, err := otel.Meter("github.com/goto/siren/core/notification").
+		Int64Counter("siren.notification.dispatch.subscriber")
+	if err != nil {
+		otel.Handle(err)
+	}
 	return &DispatchSubscriberService{
-		logger:               logger,
-		subscriptionService:  subscriptionService,
-		silenceService:       silenceService,
-		notifierPlugins:      notifierPlugins,
-		enableSilenceFeature: enableSilenceFeature,
-		templateService:      templateService,
+		logger:                          logger,
+		subscriptionService:             subscriptionService,
+		silenceService:                  silenceService,
+		notifierPlugins:                 notifierPlugins,
+		enableSilenceFeature:            enableSilenceFeature,
+		templateService:                 templateService,
+		metricCounterDispatchSubscriber: metricCounterDispatchSubscriber,
 	}
 }
 
@@ -172,4 +193,65 @@ func (s *DispatchSubscriberService) PrepareMessage(ctx context.Context, n Notifi
 	}
 
 	return messages, notificationLogs, hasSilenced, nil
+}
+
+func (s *DispatchSubscriberService) PrepareMessageV2(ctx context.Context, n Notification) (messages []Message, notificationLogs []log.Notification, hasSilenced bool, err error) {
+	var metricStatus = metricDispatchSubscriberStatusSuccess
+
+	messages = make([]Message, 0)
+
+	defer func() {
+		s.instrumentDispatchSubscription(ctx, metricDispatchSubscriberAttributePrepareMessage, metricStatus, err)
+	}()
+
+	receiversView, err := s.subscriptionService.MatchByLabelsV2(ctx, n.NamespaceID, n.Labels)
+	if err != nil {
+		metricStatus = metricDispatchSubscriberStatusMatchError
+		return nil, nil, false, err
+	}
+
+	if len(receiversView) == 0 {
+		metricStatus = metricDispatchSubscriberStatusMatchNotFound
+		return nil, nil, false, errors.ErrInvalid.WithMsgf("not matching any subscription")
+	}
+
+	for _, rcv := range receiversView {
+		notifierPlugin, err := s.getNotifierPlugin(rcv.Type)
+		if err != nil {
+			metricStatus = metricDispatchSubscriberStatusNotifierError
+			return nil, nil, false, err
+		}
+
+		message, err := InitMessage(
+			ctx,
+			notifierPlugin,
+			s.templateService,
+			n,
+			rcv.Type,
+			rcv.Configurations,
+			InitWithExpiryDuration(n.ValidDuration),
+		)
+		if err != nil {
+			metricStatus = metricDispatchSubscriberStatusMessageInitError
+			return nil, nil, false, err
+		}
+
+		messages = append(messages, message)
+		notificationLogs = append(notificationLogs, log.Notification{
+			NamespaceID:    n.NamespaceID,
+			NotificationID: n.ID,
+			SubscriptionID: rcv.SubscriptionID,
+			ReceiverID:     rcv.ID,
+			AlertIDs:       n.AlertIDs,
+		})
+	}
+
+	return messages, notificationLogs, hasSilenced, nil
+}
+
+func (s *DispatchSubscriberService) instrumentDispatchSubscription(ctx context.Context, attributeKey, attributeValue string, err error) {
+	s.metricCounterDispatchSubscriber.Add(ctx, 1, metric.WithAttributes(
+		attribute.String(attributeKey, attributeValue),
+		attribute.Bool("operation.success", err == nil),
+	))
 }

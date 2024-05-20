@@ -99,6 +99,81 @@ func (_c *Dispatcher_PrepareMessage_Call) RunAndReturn(run func(context.Context,
 	return _c
 }
 
+// PrepareMessageV2 provides a mock function with given fields: ctx, n
+func (_m *Dispatcher) PrepareMessageV2(ctx context.Context, n notification.Notification) ([]notification.Message, []log.Notification, bool, error) {
+	ret := _m.Called(ctx, n)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PrepareMessageV2")
+	}
+
+	var r0 []notification.Message
+	var r1 []log.Notification
+	var r2 bool
+	var r3 error
+	if rf, ok := ret.Get(0).(func(context.Context, notification.Notification) ([]notification.Message, []log.Notification, bool, error)); ok {
+		return rf(ctx, n)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, notification.Notification) []notification.Message); ok {
+		r0 = rf(ctx, n)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]notification.Message)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, notification.Notification) []log.Notification); ok {
+		r1 = rf(ctx, n)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]log.Notification)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, notification.Notification) bool); ok {
+		r2 = rf(ctx, n)
+	} else {
+		r2 = ret.Get(2).(bool)
+	}
+
+	if rf, ok := ret.Get(3).(func(context.Context, notification.Notification) error); ok {
+		r3 = rf(ctx, n)
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
+}
+
+// Dispatcher_PrepareMessageV2_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PrepareMessageV2'
+type Dispatcher_PrepareMessageV2_Call struct {
+	*mock.Call
+}
+
+// PrepareMessageV2 is a helper method to define mock.On call
+//   - ctx context.Context
+//   - n notification.Notification
+func (_e *Dispatcher_Expecter) PrepareMessageV2(ctx interface{}, n interface{}) *Dispatcher_PrepareMessageV2_Call {
+	return &Dispatcher_PrepareMessageV2_Call{Call: _e.mock.On("PrepareMessageV2", ctx, n)}
+}
+
+func (_c *Dispatcher_PrepareMessageV2_Call) Run(run func(ctx context.Context, n notification.Notification)) *Dispatcher_PrepareMessageV2_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(notification.Notification))
+	})
+	return _c
+}
+
+func (_c *Dispatcher_PrepareMessageV2_Call) Return(_a0 []notification.Message, _a1 []log.Notification, _a2 bool, _a3 error) *Dispatcher_PrepareMessageV2_Call {
+	_c.Call.Return(_a0, _a1, _a2, _a3)
+	return _c
+}
+
+func (_c *Dispatcher_PrepareMessageV2_Call) RunAndReturn(run func(context.Context, notification.Notification) ([]notification.Message, []log.Notification, bool, error)) *Dispatcher_PrepareMessageV2_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewDispatcher creates a new instance of Dispatcher. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewDispatcher(t interface {

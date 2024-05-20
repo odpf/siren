@@ -22,23 +22,32 @@ type NamespaceService interface {
 
 type ReceiverService interface {
 	List(ctx context.Context, flt receiver.Filter) ([]receiver.Receiver, error)
+	PostHookDBTransformConfigs(ctx context.Context, receiverType string, configs map[string]any) (map[string]any, error)
 }
 
 // Service handles business logic
 type Service struct {
-	repository       Repository
-	logService       LogService
-	namespaceService NamespaceService
-	receiverService  ReceiverService
+	repository                  Repository
+	logService                  LogService
+	namespaceService            NamespaceService
+	receiverService             ReceiverService
+	subscriptionReceiverService SubscriptionReceiverService
 }
 
 // NewService returns service struct
-func NewService(repository Repository, logService LogService, namespaceService NamespaceService, receiverService ReceiverService) *Service {
+func NewService(
+	repository Repository,
+	logService LogService,
+	namespaceService NamespaceService,
+	receiverService ReceiverService,
+	subscriptionReceiverService SubscriptionReceiverService,
+) *Service {
 	svc := &Service{
-		repository:       repository,
-		logService:       logService,
-		namespaceService: namespaceService,
-		receiverService:  receiverService,
+		repository:                  repository,
+		logService:                  logService,
+		namespaceService:            namespaceService,
+		receiverService:             receiverService,
+		subscriptionReceiverService: subscriptionReceiverService,
 	}
 
 	return svc

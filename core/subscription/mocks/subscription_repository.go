@@ -22,6 +22,52 @@ func (_m *Repository) EXPECT() *Repository_Expecter {
 	return &Repository_Expecter{mock: &_m.Mock}
 }
 
+// Commit provides a mock function with given fields: ctx
+func (_m *Repository) Commit(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Commit")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Repository_Commit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Commit'
+type Repository_Commit_Call struct {
+	*mock.Call
+}
+
+// Commit is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *Repository_Expecter) Commit(ctx interface{}) *Repository_Commit_Call {
+	return &Repository_Commit_Call{Call: _e.mock.On("Commit", ctx)}
+}
+
+func (_c *Repository_Commit_Call) Run(run func(ctx context.Context)) *Repository_Commit_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *Repository_Commit_Call) Return(_a0 error) *Repository_Commit_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Repository_Commit_Call) RunAndReturn(run func(context.Context) error) *Repository_Commit_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Create provides a mock function with given fields: _a0, _a1
 func (_m *Repository) Create(_a0 context.Context, _a1 *subscription.Subscription) error {
 	ret := _m.Called(_a0, _a1)
@@ -234,6 +280,112 @@ func (_c *Repository_List_Call) RunAndReturn(run func(context.Context, subscript
 	return _c
 }
 
+// MatchLabelsFetchReceivers provides a mock function with given fields: ctx, flt
+func (_m *Repository) MatchLabelsFetchReceivers(ctx context.Context, flt subscription.Filter) ([]subscription.ReceiverView, error) {
+	ret := _m.Called(ctx, flt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MatchLabelsFetchReceivers")
+	}
+
+	var r0 []subscription.ReceiverView
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, subscription.Filter) ([]subscription.ReceiverView, error)); ok {
+		return rf(ctx, flt)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, subscription.Filter) []subscription.ReceiverView); ok {
+		r0 = rf(ctx, flt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]subscription.ReceiverView)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, subscription.Filter) error); ok {
+		r1 = rf(ctx, flt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Repository_MatchLabelsFetchReceivers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MatchLabelsFetchReceivers'
+type Repository_MatchLabelsFetchReceivers_Call struct {
+	*mock.Call
+}
+
+// MatchLabelsFetchReceivers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - flt subscription.Filter
+func (_e *Repository_Expecter) MatchLabelsFetchReceivers(ctx interface{}, flt interface{}) *Repository_MatchLabelsFetchReceivers_Call {
+	return &Repository_MatchLabelsFetchReceivers_Call{Call: _e.mock.On("MatchLabelsFetchReceivers", ctx, flt)}
+}
+
+func (_c *Repository_MatchLabelsFetchReceivers_Call) Run(run func(ctx context.Context, flt subscription.Filter)) *Repository_MatchLabelsFetchReceivers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(subscription.Filter))
+	})
+	return _c
+}
+
+func (_c *Repository_MatchLabelsFetchReceivers_Call) Return(_a0 []subscription.ReceiverView, _a1 error) *Repository_MatchLabelsFetchReceivers_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Repository_MatchLabelsFetchReceivers_Call) RunAndReturn(run func(context.Context, subscription.Filter) ([]subscription.ReceiverView, error)) *Repository_MatchLabelsFetchReceivers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Rollback provides a mock function with given fields: ctx, err
+func (_m *Repository) Rollback(ctx context.Context, err error) error {
+	ret := _m.Called(ctx, err)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Rollback")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, error) error); ok {
+		r0 = rf(ctx, err)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Repository_Rollback_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Rollback'
+type Repository_Rollback_Call struct {
+	*mock.Call
+}
+
+// Rollback is a helper method to define mock.On call
+//   - ctx context.Context
+//   - err error
+func (_e *Repository_Expecter) Rollback(ctx interface{}, err interface{}) *Repository_Rollback_Call {
+	return &Repository_Rollback_Call{Call: _e.mock.On("Rollback", ctx, err)}
+}
+
+func (_c *Repository_Rollback_Call) Run(run func(ctx context.Context, err error)) *Repository_Rollback_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(error))
+	})
+	return _c
+}
+
+func (_c *Repository_Rollback_Call) Return(_a0 error) *Repository_Rollback_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Repository_Rollback_Call) RunAndReturn(run func(context.Context, error) error) *Repository_Rollback_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Update provides a mock function with given fields: _a0, _a1
 func (_m *Repository) Update(_a0 context.Context, _a1 *subscription.Subscription) error {
 	ret := _m.Called(_a0, _a1)
@@ -277,6 +429,54 @@ func (_c *Repository_Update_Call) Return(_a0 error) *Repository_Update_Call {
 }
 
 func (_c *Repository_Update_Call) RunAndReturn(run func(context.Context, *subscription.Subscription) error) *Repository_Update_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WithTransaction provides a mock function with given fields: ctx
+func (_m *Repository) WithTransaction(ctx context.Context) context.Context {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WithTransaction")
+	}
+
+	var r0 context.Context
+	if rf, ok := ret.Get(0).(func(context.Context) context.Context); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(context.Context)
+		}
+	}
+
+	return r0
+}
+
+// Repository_WithTransaction_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WithTransaction'
+type Repository_WithTransaction_Call struct {
+	*mock.Call
+}
+
+// WithTransaction is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *Repository_Expecter) WithTransaction(ctx interface{}) *Repository_WithTransaction_Call {
+	return &Repository_WithTransaction_Call{Call: _e.mock.On("WithTransaction", ctx)}
+}
+
+func (_c *Repository_WithTransaction_Call) Run(run func(ctx context.Context)) *Repository_WithTransaction_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *Repository_WithTransaction_Call) Return(_a0 context.Context) *Repository_WithTransaction_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Repository_WithTransaction_Call) RunAndReturn(run func(context.Context) context.Context) *Repository_WithTransaction_Call {
 	_c.Call.Return(run)
 	return _c
 }

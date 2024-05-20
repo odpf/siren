@@ -49,7 +49,7 @@ func (s *SilenceRepositoryTestSuite) SetupSuite() {
 	}
 
 	s.ctx = context.TODO()
-	s.Require().NoError(migrate(s.ctx, logger, s.client, dbConfig))
+	s.Require().NoError(migrate(s.ctx, s.client, dbConfig))
 	s.repository = postgres.NewSilenceRepository(s.client)
 
 	_, err = bootstrapProvider(s.client)

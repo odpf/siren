@@ -18,6 +18,9 @@ type Receiver struct {
 	ParentID       sql.NullInt64       `db:"parent_id"`
 	CreatedAt      time.Time           `db:"created_at"`
 	UpdatedAt      time.Time           `db:"updated_at"`
+
+	// This is optional and used as backreference for match by labels case
+	SubscriptionID uint64 `db:"subscription_id"`
 }
 
 func (rcv *Receiver) FromDomain(t receiver.Receiver) {
@@ -53,4 +56,3 @@ func (rcv *Receiver) ToDomain() *receiver.Receiver {
 		UpdatedAt: rcv.UpdatedAt,
 	}
 }
-

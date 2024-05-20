@@ -15,21 +15,26 @@ type GRPCServerOption func(*GRPCServer)
 
 func WithGlobalSubscription(useGlobalSubscription bool) GRPCServerOption {
 	return func(s *GRPCServer) {
-		s.useGlobalSubscription = useGlobalSubscription
+		s.cfg.useGlobalSubscription = useGlobalSubscription
 	}
 }
 
 func WithDebugRequest(debugRequest bool) GRPCServerOption {
 	return func(s *GRPCServer) {
-		s.withDebugRequest = debugRequest
+		s.cfg.withDebugRequest = debugRequest
+	}
+}
+
+func WithSubscriptionV2(subscriptionV2Enabled bool) GRPCServerOption {
+	return func(s *GRPCServer) {
+		s.cfg.subscriptionV2Enabled = subscriptionV2Enabled
 	}
 }
 
 type GRPCServer struct {
-	logger                log.Logger
-	headers               api.HeadersConfig
-	useGlobalSubscription bool
-	withDebugRequest      bool
+	logger  log.Logger
+	cfg     Config
+	headers api.HeadersConfig
 	sirenv1beta1.UnimplementedSirenServiceServer
 	templateService     api.TemplateService
 	ruleService         api.RuleService

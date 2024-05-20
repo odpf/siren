@@ -41,6 +41,10 @@ func (s *DispatchReceiverService) getNotifierPlugin(receiverType string) (Notifi
 	return notifierPlugin, nil
 }
 
+func (s *DispatchReceiverService) PrepareMessageV2(ctx context.Context, n Notification) ([]Message, []log.Notification, bool, error) {
+	return s.PrepareMessage(ctx, n)
+}
+
 func (s *DispatchReceiverService) PrepareMessage(ctx context.Context, n Notification) ([]Message, []log.Notification, bool, error) {
 
 	var notificationLogs []log.Notification

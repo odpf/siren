@@ -55,6 +55,12 @@ type SubscriptionService interface {
 	Get(context.Context, uint64) (*subscription.Subscription, error)
 	Update(context.Context, *subscription.Subscription) error
 	Delete(context.Context, uint64) error
+
+	ListV2(context.Context, subscription.Filter) ([]subscription.Subscription, error)
+	CreateV2(context.Context, *subscription.Subscription) error
+	GetV2(context.Context, uint64) (*subscription.Subscription, error)
+	UpdateV2(context.Context, *subscription.Subscription) error
+	DeleteV2(context.Context, uint64) error
 }
 
 type TemplateService interface {

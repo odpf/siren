@@ -48,11 +48,12 @@ func (s *NotificationReceiverTestSuite) SetupTest() {
 		GRPC: server.GRPCConfig{
 			Port: apiPort,
 		},
-		EncryptionKey: testEncryptionKey,
+		EncryptionKey:         testEncryptionKey,
+		SubscriptionV2Enabled: true,
 	}
 	s.appConfig.Notification.MessageHandler.Enabled = true
 	s.appConfig.Notification.DLQHandler.Enabled = false
-	s.appConfig.Telemetry.OpenTelemetry.Enabled = false
+	s.appConfig.Notification.SubscriptionV2Enabled = true
 
 	s.testBench, err = InitCortexEnvironment(s.appConfig)
 	s.Require().NoError(err)

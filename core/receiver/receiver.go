@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/goto/siren/core/subscriptionreceiver"
 )
 
 const (
@@ -43,6 +45,13 @@ func (r *Receiver) Validate() error {
 	}
 
 	return nil
+}
+
+func (r Receiver) ToSubscriptionReceiverRelation(subscriptionID uint64) subscriptionreceiver.Relation {
+	return subscriptionreceiver.Relation{
+		SubscriptionID: subscriptionID,
+		ReceiverID:     r.ID,
+	}
 }
 
 func (r *Receiver) enrichPredefinedLabels() {

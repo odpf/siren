@@ -45,6 +45,24 @@ var subscriptionListQueryBuilder = sq.Select(
 	"updated_at",
 ).From("subscriptions")
 
+var subscriptionMatchLabelsFetchReceiversQueryBuilder = sq.Select(
+	"r.id as id",
+	"r.name as name",
+	"r.type as type",
+	"r.labels as labels",
+	"r.parent_id as parent_id",
+	"r.created_at as created_at",
+	"r.updated_at as updated_at",
+	"s.id as subscription_id",
+	"s.match as match",
+).Column(
+	sq.Expr("r.configurations || COALESCE(pr.configurations, '{}'::jsonb) AS configurations"),
+).
+	From("subscriptions s").
+	InnerJoin("subscriptions_receivers sr ON s.id = sr.subscription_id").
+	InnerJoin("receivers r ON r.id = sr.receiver_id").
+	LeftJoin("receivers pr ON pr.id = r.parent_id")
+
 // SubscriptionRepository talks to the store to read or insert data
 type SubscriptionRepository struct {
 	client *pgc.Client
@@ -254,4 +272,68 @@ func (r *SubscriptionRepository) Delete(ctx context.Context, id uint64) error {
 		return err
 	}
 	return nil
+}
+
+func (r *SubscriptionRepository) MatchLabelsFetchReceivers(ctx context.Context, flt subscription.Filter) ([]subscription.ReceiverView, error) {
+	if len(flt.Match) == 0 {
+		return nil, errors.ErrInvalid.WithMsgf("matcher cannot be empty")
+	}
+
+	var queryBuilder = subscriptionMatchLabelsFetchReceiversQueryBuilder.Where("sr.deleted_at IS NULL")
+	// given map of string from input [mf], look for rows that [mf] exist in match column in DB
+	matchJSON, err := json.Marshal(flt.Match)
+	if err != nil {
+		return nil, errors.ErrInvalid.WithMsgf("problem marshalling notification labels json to string with err: %s", err.Error())
+	}
+	queryBuilder = queryBuilder.Where(fmt.Sprintf("s.match <@ '%s'::jsonb", string(json.RawMessage(matchJSON))))
+
+	if flt.NamespaceID != 0 {
+		queryBuilder = queryBuilder.Where(fmt.Sprintf("s.namespace_id = %d", flt.NamespaceID))
+	}
+
+	query, _, err := queryBuilder.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "MatchLabelsFetchReceivers"),
+			attribute.String("db.sql.table", "subscriptions"),
+		}...,
+	)
+
+	rows, err := r.client.QueryxContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var receivers []subscription.ReceiverView
+	for rows.Next() {
+		var receiverModel model.ReceiverView
+		if err := rows.StructScan(&receiverModel); err != nil {
+			return nil, err
+		}
+
+		receivers = append(receivers, *receiverModel.ToDomain())
+	}
+
+	return receivers, nil
+}
+
+func (r *SubscriptionRepository) WithTransaction(ctx context.Context) context.Context {
+	return r.client.WithTransaction(ctx, nil)
+}
+
+func (r *SubscriptionRepository) Rollback(ctx context.Context, err error) error {
+	if txErr := r.client.Rollback(ctx); txErr != nil {
+		return fmt.Errorf("rollback error %s with error: %w", txErr.Error(), err)
+	}
+	return nil
+}
+
+func (r *SubscriptionRepository) Commit(ctx context.Context) error {
+	return r.client.Commit(ctx)
 }

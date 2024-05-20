@@ -20,13 +20,28 @@ func (s *GRPCServer) ListSubscriptions(ctx context.Context, req *sirenv1beta1.Li
 		}
 	}
 
-	subscriptions, err := s.subscriptionService.List(ctx, subscription.Filter{
-		NamespaceID:       req.GetNamespaceId(),
-		SilenceID:         req.GetSilenceId(),
-		Metadata:          metadataQuery,
-		Match:             req.GetMatch(),
-		NotificationMatch: req.GetNotificationMatch(),
-	})
+	var (
+		subscriptions []subscription.Subscription
+		err           error
+	)
+
+	if s.cfg.subscriptionV2Enabled {
+		subscriptions, err = s.subscriptionService.ListV2(ctx, subscription.Filter{
+			NamespaceID:       req.GetNamespaceId(),
+			SilenceID:         req.GetSilenceId(),
+			Metadata:          metadataQuery,
+			Match:             req.GetMatch(),
+			NotificationMatch: req.GetNotificationMatch(),
+		})
+	} else {
+		subscriptions, err = s.subscriptionService.List(ctx, subscription.Filter{
+			NamespaceID:       req.GetNamespaceId(),
+			SilenceID:         req.GetSilenceId(),
+			Metadata:          metadataQuery,
+			Match:             req.GetMatch(),
+			NotificationMatch: req.GetNotificationMatch(),
+		})
+	}
 	if err != nil {
 		return nil, s.generateRPCErr(err)
 	}
@@ -83,7 +98,13 @@ func (s *GRPCServer) CreateSubscription(ctx context.Context, req *sirenv1beta1.C
 		UpdatedBy: req.CreatedBy,
 	}
 
-	err := s.subscriptionService.Create(ctx, sub)
+	var err error
+
+	if s.cfg.subscriptionV2Enabled {
+		err = s.subscriptionService.CreateV2(ctx, sub)
+	} else {
+		err = s.subscriptionService.Create(ctx, sub)
+	}
 	if err != nil {
 		return nil, s.generateRPCErr(err)
 	}
@@ -94,7 +115,16 @@ func (s *GRPCServer) CreateSubscription(ctx context.Context, req *sirenv1beta1.C
 }
 
 func (s *GRPCServer) GetSubscription(ctx context.Context, req *sirenv1beta1.GetSubscriptionRequest) (*sirenv1beta1.GetSubscriptionResponse, error) {
-	sub, err := s.subscriptionService.Get(ctx, req.GetId())
+	var (
+		sub *subscription.Subscription
+		err error
+	)
+
+	if s.cfg.subscriptionV2Enabled {
+		sub, err = s.subscriptionService.GetV2(ctx, req.GetId())
+	} else {
+		sub, err = s.subscriptionService.Get(ctx, req.GetId())
+	}
 	if err != nil {
 		return nil, s.generateRPCErr(err)
 	}
@@ -144,7 +174,13 @@ func (s *GRPCServer) UpdateSubscription(ctx context.Context, req *sirenv1beta1.U
 		UpdatedBy: req.UpdatedBy,
 	}
 
-	err := s.subscriptionService.Update(ctx, sub)
+	var err error
+
+	if s.cfg.subscriptionV2Enabled {
+		err = s.subscriptionService.UpdateV2(ctx, sub)
+	} else {
+		err = s.subscriptionService.Update(ctx, sub)
+	}
 	if err != nil {
 		return nil, s.generateRPCErr(err)
 	}
@@ -155,7 +191,13 @@ func (s *GRPCServer) UpdateSubscription(ctx context.Context, req *sirenv1beta1.U
 }
 
 func (s *GRPCServer) DeleteSubscription(ctx context.Context, req *sirenv1beta1.DeleteSubscriptionRequest) (*sirenv1beta1.DeleteSubscriptionResponse, error) {
-	err := s.subscriptionService.Delete(ctx, req.GetId())
+	var err error
+
+	if s.cfg.subscriptionV2Enabled {
+		err = s.subscriptionService.DeleteV2(ctx, req.GetId())
+	} else {
+		err = s.subscriptionService.Delete(ctx, req.GetId())
+	}
 	if err != nil {
 		return nil, s.generateRPCErr(err)
 	}

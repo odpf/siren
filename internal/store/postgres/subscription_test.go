@@ -48,7 +48,7 @@ func (s *SubscriptionRepositoryTestSuite) SetupSuite() {
 	}
 
 	s.ctx = context.TODO()
-	s.Require().NoError(migrate(s.ctx, logger, s.client, dbConfig))
+	s.Require().NoError(migrate(s.ctx, s.client, dbConfig))
 
 	s.repository = postgres.NewSubscriptionRepository(s.client)
 
@@ -116,6 +116,12 @@ func (s *SubscriptionRepositoryTestSuite) TestList() {
 						{
 							ID: 1,
 						},
+						{ID: 2},
+						{ID: 3,
+							Configuration: map[string]any{
+								"channel_name": string("gotocompany-data"),
+							},
+						},
 					},
 					Match: map[string]string{},
 					Metadata: map[string]any{
@@ -132,7 +138,7 @@ func (s *SubscriptionRepositoryTestSuite) TestList() {
 					Namespace: 1,
 					Receivers: []subscription.Receiver{
 						{
-							ID: 1,
+							ID: 3,
 							Configuration: map[string]any{
 								"channel_name": "gotocompany-data",
 							},
@@ -160,7 +166,7 @@ func (s *SubscriptionRepositoryTestSuite) TestList() {
 						{
 							ID: 1,
 							Configuration: map[string]any{
-								"channel_name": "gotocompany-data",
+								"channel_name": "gotocompany-data-1",
 							},
 						},
 					},
@@ -185,7 +191,7 @@ func (s *SubscriptionRepositoryTestSuite) TestList() {
 					Namespace: 1,
 					Receivers: []subscription.Receiver{
 						{
-							ID: 1,
+							ID: 3,
 							Configuration: map[string]any{
 								"channel_name": "gotocompany-data",
 							},
@@ -225,7 +231,7 @@ func (s *SubscriptionRepositoryTestSuite) TestList() {
 						{
 							ID: 1,
 							Configuration: map[string]any{
-								"channel_name": "gotocompany-data",
+								"channel_name": "gotocompany-data-1",
 							},
 						},
 					},
@@ -252,7 +258,7 @@ func (s *SubscriptionRepositoryTestSuite) TestList() {
 					Namespace: 1,
 					Receivers: []subscription.Receiver{
 						{
-							ID: 1,
+							ID: 3,
 							Configuration: map[string]any{
 								"channel_name": "gotocompany-data",
 							},
@@ -292,6 +298,12 @@ func (s *SubscriptionRepositoryTestSuite) TestList() {
 						{
 							ID: 1,
 						},
+						{ID: 2},
+						{ID: 3,
+							Configuration: map[string]any{
+								"channel_name": string("gotocompany-data"),
+							},
+						},
 					},
 					Match: map[string]string{},
 					Metadata: map[string]any{
@@ -308,7 +320,7 @@ func (s *SubscriptionRepositoryTestSuite) TestList() {
 					Namespace: 1,
 					Receivers: []subscription.Receiver{
 						{
-							ID: 1,
+							ID: 3,
 							Configuration: map[string]any{
 								"channel_name": "gotocompany-data",
 							},
@@ -460,7 +472,7 @@ func (s *SubscriptionRepositoryTestSuite) TestGet() {
 					{
 						ID: 1,
 						Configuration: map[string]any{
-							"channel_name": "gotocompany-data",
+							"channel_name": "gotocompany-data-1",
 						},
 					},
 				},

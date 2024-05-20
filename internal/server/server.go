@@ -45,6 +45,9 @@ type Config struct {
 	EnableSilenceFeature  bool              `mapstructure:"enable_silence_feature" yaml:"enable_silence_feature" default:"false"`
 	DebugRequest          bool              `mapstructure:"debug_request" yaml:"debug_request" default:"false"`
 	GRPC                  GRPCConfig        `mapstructure:"grpc"`
+
+	// experimental
+	SubscriptionV2Enabled bool `mapstructure:"subscription_v2_enabled" yaml:"subscription_v2_enabled" default:"false"`
 }
 
 func (cfg Config) addr() string     { return fmt.Sprintf("%s:%d", cfg.Host, cfg.Port) }
@@ -131,6 +134,7 @@ func RunServer(
 		apiDeps,
 		v1beta1.WithGlobalSubscription(c.UseGlobalSubscription),
 		v1beta1.WithDebugRequest(c.DebugRequest),
+		v1beta1.WithSubscriptionV2(c.SubscriptionV2Enabled),
 	)
 	grpcServer.RegisterService(&sirenv1beta1.SirenService_ServiceDesc, sirenServiceRPC)
 	grpcServer.RegisterService(&grpc_health_v1.Health_ServiceDesc, sirenServiceRPC)

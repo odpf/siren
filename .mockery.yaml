@@ -189,6 +189,24 @@ packages:
       Repository:
         config:
           filename: "subscription_repository.go"
+      SubscriptionReceiverService:
+        config:
+          filename: "subscription_receiver_service.go"
+      Transactor:
+        config:
+          filename: "transactor.go"
+  github.com/goto/siren/core/subscriptionreceiver:
+    config:
+      dir: "core/subscriptionreceiver/mocks"
+      outpkg: "mocks"
+      mockname: "{{.InterfaceName}}"
+    interfaces:
+      Repository:
+        config:
+          filename: "repository.go"
+      Transactor:
+        config:
+          filename: "transactor.go"
   github.com/goto/siren/core/template:
     config:
       dir: "core/template/mocks"

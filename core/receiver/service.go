@@ -27,6 +27,18 @@ func (s *Service) getReceiverPlugin(receiverType string) (ConfigResolver, error)
 	return receiverPlugin, nil
 }
 
+func (s *Service) PostHookDBTransformConfigs(ctx context.Context, receiverType string, configs map[string]any) (map[string]any, error) {
+	receiverPlugin, err := s.getReceiverPlugin(receiverType)
+	if err != nil {
+		return nil, err
+	}
+	transformedConfigs, err := receiverPlugin.PostHookDBTransformConfigs(ctx, configs)
+	if err != nil {
+		return nil, err
+	}
+	return transformedConfigs, nil
+}
+
 func (s *Service) List(ctx context.Context, flt Filter) ([]Receiver, error) {
 	receivers, err := s.repository.List(ctx, flt)
 	if err != nil {

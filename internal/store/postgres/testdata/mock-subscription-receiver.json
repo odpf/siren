@@ -1,0 +1,18 @@
+[
+    {
+        "subscription_id": 1,
+        "receiver_id": 1
+    },
+    {
+        "subscription_id": 1,
+        "receiver_id": 2
+    },
+    {
+        "subscription_id": 1,
+        "receiver_id": 3
+    },
+    {
+        "subscription_id": 2,
+        "receiver_id": 3
+    }
+]

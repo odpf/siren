@@ -19,19 +19,19 @@ import (
 const receiverInsertQuery = `
 INSERT INTO receivers (name, type, labels, configurations, parent_id, created_at, updated_at)
     VALUES ($1, $2, $3, $4, $5, now(), now())
-RETURNING *
+RETURNING id, name, type, labels, configurations, parent_id, created_at, updated_at
 `
 
 const receiverUpdateQuery = `
 UPDATE receivers SET name=$2, labels=$3, configurations=$4, updated_at=now()
 WHERE id = $1
-RETURNING *
+RETURNING id, name, type, labels, configurations, parent_id, created_at, updated_at
 `
 
 const receiverPatchLabelsQuery = `
 UPDATE receivers SET labels=$2, updated_at=now()
 WHERE id = $1
-RETURNING *
+RETURNING id, name, type, labels, configurations, parent_id, created_at, updated_at
 `
 
 const receiverDeleteQuery = `

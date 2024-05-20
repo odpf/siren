@@ -15,6 +15,7 @@ import (
 	"github.com/goto/siren/core/rule"
 	"github.com/goto/siren/core/silence"
 	"github.com/goto/siren/core/subscription"
+	"github.com/goto/siren/core/subscriptionreceiver"
 	"github.com/goto/siren/core/template"
 	"github.com/goto/siren/internal/api"
 	"github.com/goto/siren/internal/store/postgres"
@@ -129,12 +130,16 @@ func InitDeps(
 		},
 	)
 
+	subscriptionReceiverRepository := postgres.NewSubscriptionReceiverRepository(pgClient)
+	subscriptionReceiverService := subscriptionreceiver.NewService(subscriptionReceiverRepository)
+
 	subscriptionRepository := postgres.NewSubscriptionRepository(pgClient)
 	subscriptionService := subscription.NewService(
 		subscriptionRepository,
 		logService,
 		namespaceService,
 		receiverService,
+		subscriptionReceiverService,
 	)
 
 	// notification
@@ -148,6 +153,7 @@ func InitDeps(
 
 	idempotencyRepository := postgres.NewIdempotencyRepository(pgClient)
 	notificationRepository := postgres.NewNotificationRepository(pgClient)
+
 	notificationService := notification.NewService(
 		logger,
 		cfg.Notification,

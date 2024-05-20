@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/goto/salt/db"
-	saltlog "github.com/goto/salt/log"
 	"github.com/goto/siren/core/alert"
 	"github.com/goto/siren/core/log"
 	"github.com/goto/siren/core/namespace"
@@ -17,6 +16,7 @@ import (
 	"github.com/goto/siren/core/rule"
 	"github.com/goto/siren/core/silence"
 	"github.com/goto/siren/core/subscription"
+	"github.com/goto/siren/core/subscriptionreceiver"
 	"github.com/goto/siren/core/template"
 	"github.com/goto/siren/internal/store/postgres"
 	"github.com/goto/siren/pkg/pgc"
@@ -46,7 +46,7 @@ func purgeDocker(pool *dockertest.Pool, resource *dockertest.Resource) error {
 	return nil
 }
 
-func migrate(ctx context.Context, logger saltlog.Logger, client *pgc.Client, dbConf db.Config) error {
+func migrate(ctx context.Context, client *pgc.Client, dbConf db.Config) error {
 	var queries = []string{
 		"DROP SCHEMA public CASCADE",
 		"CREATE SCHEMA public",
@@ -264,6 +264,26 @@ func bootstrapSubscription(client *pgc.Client) ([]subscription.Subscription, err
 	}
 
 	return insertedData, nil
+}
+
+func bootstrapSubscriptionReceiver(client *pgc.Client) ([]subscriptionreceiver.Relation, error) {
+	filePath := "./testdata/mock-subscription-receiver.json"
+	testFixtureJSON, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	var data []subscriptionreceiver.Relation
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	repo := postgres.NewSubscriptionReceiverRepository(client)
+
+	if err := repo.BulkCreate(context.Background(), data); err != nil {
+		return nil, err
+	}
+	return data, nil
 }
 
 func bootstrapNotification(client *pgc.Client) ([]notification.Notification, error) {

@@ -13,6 +13,9 @@ type Config struct {
 	Queue                   queues.Config `mapstructure:"queue" yaml:"queue"`
 	MessageHandler          HandlerConfig `mapstructure:"message_handler" yaml:"message_handler"`
 	DLQHandler              HandlerConfig `mapstructure:"dlq_handler" yaml:"dlq_handler"`
+
+	// experimental: derived from service.Config
+	SubscriptionV2Enabled bool
 }
 
 type HandlerConfig struct {

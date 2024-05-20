@@ -128,6 +128,9 @@ func StartServer(ctx context.Context, cfg config.Config) error {
 		return err
 	}
 
+	// propagating the config explicitly
+	cfg.Notification.SubscriptionV2Enabled = cfg.Service.SubscriptionV2Enabled
+
 	defer cleanUpTelemetry()
 
 	var queue, dlq notification.Queuer

@@ -83,6 +83,66 @@ func (_c *SubscriptionService_MatchByLabels_Call) RunAndReturn(run func(context.
 	return _c
 }
 
+// MatchByLabelsV2 provides a mock function with given fields: ctx, namespaceID, labels
+func (_m *SubscriptionService) MatchByLabelsV2(ctx context.Context, namespaceID uint64, labels map[string]string) ([]subscription.ReceiverView, error) {
+	ret := _m.Called(ctx, namespaceID, labels)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MatchByLabelsV2")
+	}
+
+	var r0 []subscription.ReceiverView
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint64, map[string]string) ([]subscription.ReceiverView, error)); ok {
+		return rf(ctx, namespaceID, labels)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uint64, map[string]string) []subscription.ReceiverView); ok {
+		r0 = rf(ctx, namespaceID, labels)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]subscription.ReceiverView)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uint64, map[string]string) error); ok {
+		r1 = rf(ctx, namespaceID, labels)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SubscriptionService_MatchByLabelsV2_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MatchByLabelsV2'
+type SubscriptionService_MatchByLabelsV2_Call struct {
+	*mock.Call
+}
+
+// MatchByLabelsV2 is a helper method to define mock.On call
+//   - ctx context.Context
+//   - namespaceID uint64
+//   - labels map[string]string
+func (_e *SubscriptionService_Expecter) MatchByLabelsV2(ctx interface{}, namespaceID interface{}, labels interface{}) *SubscriptionService_MatchByLabelsV2_Call {
+	return &SubscriptionService_MatchByLabelsV2_Call{Call: _e.mock.On("MatchByLabelsV2", ctx, namespaceID, labels)}
+}
+
+func (_c *SubscriptionService_MatchByLabelsV2_Call) Run(run func(ctx context.Context, namespaceID uint64, labels map[string]string)) *SubscriptionService_MatchByLabelsV2_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uint64), args[2].(map[string]string))
+	})
+	return _c
+}
+
+func (_c *SubscriptionService_MatchByLabelsV2_Call) Return(_a0 []subscription.ReceiverView, _a1 error) *SubscriptionService_MatchByLabelsV2_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SubscriptionService_MatchByLabelsV2_Call) RunAndReturn(run func(context.Context, uint64, map[string]string) ([]subscription.ReceiverView, error)) *SubscriptionService_MatchByLabelsV2_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewSubscriptionService creates a new instance of SubscriptionService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewSubscriptionService(t interface {

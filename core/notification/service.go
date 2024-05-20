@@ -18,10 +18,12 @@ import (
 
 type Dispatcher interface {
 	PrepareMessage(ctx context.Context, n Notification) ([]Message, []log.Notification, bool, error)
+	PrepareMessageV2(ctx context.Context, n Notification) ([]Message, []log.Notification, bool, error)
 }
 
 type SubscriptionService interface {
 	MatchByLabels(ctx context.Context, namespaceID uint64, labels map[string]string) ([]subscription.Subscription, error)
+	MatchByLabelsV2(ctx context.Context, namespaceID uint64, labels map[string]string) ([]subscription.ReceiverView, error)
 }
 
 type ReceiverService interface {
@@ -178,9 +180,21 @@ func (s *Service) dispatchByFlow(ctx context.Context, n Notification, flow strin
 		return err
 	}
 
-	messages, notificationLogs, hasSilenced, err := dispatcherService.PrepareMessage(ctx, n)
-	if err != nil {
-		return err
+	var (
+		messages         []Message
+		notificationLogs []log.Notification
+		hasSilenced      bool
+	)
+	if s.cfg.SubscriptionV2Enabled {
+		messages, notificationLogs, hasSilenced, err = dispatcherService.PrepareMessageV2(ctx, n)
+		if err != nil {
+			return err
+		}
+	} else {
+		messages, notificationLogs, hasSilenced, err = dispatcherService.PrepareMessage(ctx, n)
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(messages) == 0 && len(notificationLogs) == 0 {

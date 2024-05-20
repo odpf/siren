@@ -8,12 +8,33 @@ import (
 	"github.com/goto/siren/core/silence"
 )
 
+type Transactor interface {
+	WithTransaction(ctx context.Context) context.Context
+	Rollback(ctx context.Context, err error) error
+	Commit(ctx context.Context) error
+}
+
 type Repository interface {
+	Transactor
 	List(context.Context, Filter) ([]Subscription, error)
 	Create(context.Context, *Subscription) error
 	Get(context.Context, uint64) (*Subscription, error)
 	Update(context.Context, *Subscription) error
 	Delete(context.Context, uint64) error
+	MatchLabelsFetchReceivers(ctx context.Context, flt Filter) ([]ReceiverView, error)
+}
+
+type ReceiverView struct {
+	ID             uint64            `json:"id"` // receiver_id
+	Name           string            `json:"name"`
+	Labels         map[string]string `json:"labels"`
+	Type           string            `json:"type"`
+	Configurations map[string]any    `json:"configurations"`
+	ParentID       uint64            `json:"parent_id"`
+	CreatedAt      time.Time         `json:"created_at"`
+	UpdatedAt      time.Time         `json:"updated_at"`
+	SubscriptionID uint64            `json:"subscription_id"`
+	Match          map[string]string `json:"match"`
 }
 
 type Receiver struct {

@@ -55,10 +55,10 @@ func (s *GRPCServer) CreateAlerts(ctx context.Context, req *sirenv1beta1.CreateA
 
 func (s *GRPCServer) CreateAlertsWithNamespace(ctx context.Context, req *sirenv1beta1.CreateAlertsWithNamespaceRequest) (*sirenv1beta1.CreateAlertsWithNamespaceResponse, error) {
 	var namespaceID uint64 = 0
-	if !s.useGlobalSubscription {
+	if !s.cfg.useGlobalSubscription {
 		namespaceID = req.GetNamespaceId()
 	}
-	if s.withDebugRequest {
+	if s.cfg.withDebugRequest {
 		reqJSON, err := protojson.Marshal(req)
 		if err != nil {
 			s.logger.Debug("cannot marshal CreateAlertsWithNamespace req to json", "err", err.Error())

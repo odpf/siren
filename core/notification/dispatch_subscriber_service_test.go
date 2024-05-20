@@ -350,3 +350,133 @@ func TestDispatchSubscriberService_PrepareMessage(t *testing.T) {
 		})
 	}
 }
+
+func TestDispatchSubscriberService_PrepareMessageV2(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(*mocks.SubscriptionService, *mocks.SilenceService, *mocks.Notifier)
+		n       notification.Notification
+		want    []notification.Message
+		want1   []log.Notification
+		want2   bool
+		wantErr bool
+	}{
+		{
+			name: "should return error if subscription service match by labels return error",
+			setup: func(ss1 *mocks.SubscriptionService, ss2 *mocks.SilenceService, n *mocks.Notifier) {
+				ss1.EXPECT().MatchByLabelsV2(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("uint64"), mock.AnythingOfType("map[string]string")).Return(nil, errors.New("some error"))
+			},
+			wantErr: true,
+		},
+		{
+			name: "should return error if no matching subscriptions",
+			setup: func(ss1 *mocks.SubscriptionService, ss2 *mocks.SilenceService, n *mocks.Notifier) {
+				ss1.EXPECT().MatchByLabelsV2(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("uint64"), mock.AnythingOfType("map[string]string")).Return(nil, nil)
+			},
+			wantErr: true,
+		},
+		{
+			name: "should return error if receiver type is unknown",
+			n: notification.Notification{
+				NamespaceID: 1,
+			},
+			setup: func(ss1 *mocks.SubscriptionService, ss2 *mocks.SilenceService, n *mocks.Notifier) {
+				ss2.EXPECT().List(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("silence.Filter")).Return(nil, errors.New("some error"))
+				ss1.EXPECT().MatchByLabelsV2(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("uint64"), mock.AnythingOfType("map[string]string")).Return([]subscription.ReceiverView{
+					{
+						ID: 1,
+					},
+				}, nil)
+			},
+			wantErr: true,
+		},
+		{
+			name: "should return error if init messages return error",
+			n: notification.Notification{
+				NamespaceID: 1,
+			},
+			setup: func(ss1 *mocks.SubscriptionService, ss2 *mocks.SilenceService, n *mocks.Notifier) {
+				ss1.EXPECT().MatchByLabelsV2(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("uint64"), mock.AnythingOfType("map[string]string")).Return([]subscription.ReceiverView{
+					{
+						ID:   1,
+						Type: testPluginType,
+					},
+				}, nil)
+				ss2.EXPECT().List(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("silence.Filter")).Return(nil, errors.New("some error"))
+				n.EXPECT().PreHookQueueTransformConfigs(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("map[string]interface {}")).Return(nil, errors.New("some error"))
+			},
+			wantErr: true,
+		},
+		{
+			name: "should return no error if all flow passed and no silences",
+			n: notification.Notification{
+				NamespaceID: 1,
+				Type:        receiver.TypeHTTP,
+				Template:    template.ReservedName_SystemDefault,
+			},
+			setup: func(ss1 *mocks.SubscriptionService, ss2 *mocks.SilenceService, n *mocks.Notifier) {
+				ss1.EXPECT().MatchByLabelsV2(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("uint64"), mock.AnythingOfType("map[string]string")).Return([]subscription.ReceiverView{
+					{
+						ID:             1,
+						Type:           testPluginType,
+						SubscriptionID: 123,
+					},
+				}, nil)
+				n.EXPECT().PreHookQueueTransformConfigs(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("map[string]interface {}")).Return(map[string]any{}, nil)
+				n.EXPECT().GetSystemDefaultTemplate().Return("")
+			},
+			want: []notification.Message{
+				{
+					Status:       notification.MessageStatusEnqueued,
+					ReceiverType: testPluginType,
+					Configs:      map[string]any{},
+					Details:      map[string]any{"notification_type": string("http")},
+					MaxTries:     3,
+				},
+			},
+			want1: []log.Notification{{NamespaceID: 1, SubscriptionID: 123, ReceiverID: 1}},
+			want2: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				mockSubscriptionService = new(mocks.SubscriptionService)
+				mockNotifier            = new(mocks.Notifier)
+				mockSilenceService      = new(mocks.SilenceService)
+				mockTemplateService     = new(mocks.TemplateService)
+			)
+			s := notification.NewDispatchSubscriberService(
+				saltlog.NewNoop(),
+				mockSubscriptionService,
+				mockSilenceService,
+				mockTemplateService,
+				map[string]notification.Notifier{
+					testPluginType: mockNotifier,
+				},
+				true,
+			)
+
+			if tt.setup != nil {
+				tt.setup(mockSubscriptionService, mockSilenceService, mockNotifier)
+			}
+
+			got, got1, got2, err := s.PrepareMessageV2(context.TODO(), tt.n)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DispatchSubscriberService.PrepareMessageV2() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if diff := cmp.Diff(got, tt.want,
+				cmpopts.IgnoreFields(notification.Message{}, "ID", "CreatedAt", "UpdatedAt"),
+				cmpopts.IgnoreUnexported(notification.Message{})); diff != "" {
+				t.Errorf("DispatchSubscriberService.PrepareMessageV2() diff = %v", diff)
+			}
+			if diff := cmp.Diff(got1, tt.want1); diff != "" {
+				t.Errorf("DispatchSubscriberService.PrepareMessageV2() diff = %v", diff)
+			}
+			if got2 != tt.want2 {
+				t.Errorf("DispatchSubscriberService.PrepareMessageV2() got2 = %v, want %v", got2, tt.want2)
+			}
+		})
+	}
+}

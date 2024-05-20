@@ -1,0 +1,1 @@
+TRUNCATE subscriptions_receivers RESTART IDENTITY;

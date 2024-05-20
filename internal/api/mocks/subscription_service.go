@@ -69,6 +69,53 @@ func (_c *SubscriptionService_Create_Call) RunAndReturn(run func(context.Context
 	return _c
 }
 
+// CreateV2 provides a mock function with given fields: _a0, _a1
+func (_m *SubscriptionService) CreateV2(_a0 context.Context, _a1 *subscription.Subscription) error {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateV2")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *subscription.Subscription) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SubscriptionService_CreateV2_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateV2'
+type SubscriptionService_CreateV2_Call struct {
+	*mock.Call
+}
+
+// CreateV2 is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *subscription.Subscription
+func (_e *SubscriptionService_Expecter) CreateV2(_a0 interface{}, _a1 interface{}) *SubscriptionService_CreateV2_Call {
+	return &SubscriptionService_CreateV2_Call{Call: _e.mock.On("CreateV2", _a0, _a1)}
+}
+
+func (_c *SubscriptionService_CreateV2_Call) Run(run func(_a0 context.Context, _a1 *subscription.Subscription)) *SubscriptionService_CreateV2_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*subscription.Subscription))
+	})
+	return _c
+}
+
+func (_c *SubscriptionService_CreateV2_Call) Return(_a0 error) *SubscriptionService_CreateV2_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *SubscriptionService_CreateV2_Call) RunAndReturn(run func(context.Context, *subscription.Subscription) error) *SubscriptionService_CreateV2_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Delete provides a mock function with given fields: _a0, _a1
 func (_m *SubscriptionService) Delete(_a0 context.Context, _a1 uint64) error {
 	ret := _m.Called(_a0, _a1)
@@ -112,6 +159,53 @@ func (_c *SubscriptionService_Delete_Call) Return(_a0 error) *SubscriptionServic
 }
 
 func (_c *SubscriptionService_Delete_Call) RunAndReturn(run func(context.Context, uint64) error) *SubscriptionService_Delete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteV2 provides a mock function with given fields: _a0, _a1
+func (_m *SubscriptionService) DeleteV2(_a0 context.Context, _a1 uint64) error {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteV2")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SubscriptionService_DeleteV2_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteV2'
+type SubscriptionService_DeleteV2_Call struct {
+	*mock.Call
+}
+
+// DeleteV2 is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 uint64
+func (_e *SubscriptionService_Expecter) DeleteV2(_a0 interface{}, _a1 interface{}) *SubscriptionService_DeleteV2_Call {
+	return &SubscriptionService_DeleteV2_Call{Call: _e.mock.On("DeleteV2", _a0, _a1)}
+}
+
+func (_c *SubscriptionService_DeleteV2_Call) Run(run func(_a0 context.Context, _a1 uint64)) *SubscriptionService_DeleteV2_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uint64))
+	})
+	return _c
+}
+
+func (_c *SubscriptionService_DeleteV2_Call) Return(_a0 error) *SubscriptionService_DeleteV2_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *SubscriptionService_DeleteV2_Call) RunAndReturn(run func(context.Context, uint64) error) *SubscriptionService_DeleteV2_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -175,6 +269,65 @@ func (_c *SubscriptionService_Get_Call) RunAndReturn(run func(context.Context, u
 	return _c
 }
 
+// GetV2 provides a mock function with given fields: _a0, _a1
+func (_m *SubscriptionService) GetV2(_a0 context.Context, _a1 uint64) (*subscription.Subscription, error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetV2")
+	}
+
+	var r0 *subscription.Subscription
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) (*subscription.Subscription, error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) *subscription.Subscription); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*subscription.Subscription)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SubscriptionService_GetV2_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetV2'
+type SubscriptionService_GetV2_Call struct {
+	*mock.Call
+}
+
+// GetV2 is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 uint64
+func (_e *SubscriptionService_Expecter) GetV2(_a0 interface{}, _a1 interface{}) *SubscriptionService_GetV2_Call {
+	return &SubscriptionService_GetV2_Call{Call: _e.mock.On("GetV2", _a0, _a1)}
+}
+
+func (_c *SubscriptionService_GetV2_Call) Run(run func(_a0 context.Context, _a1 uint64)) *SubscriptionService_GetV2_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uint64))
+	})
+	return _c
+}
+
+func (_c *SubscriptionService_GetV2_Call) Return(_a0 *subscription.Subscription, _a1 error) *SubscriptionService_GetV2_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SubscriptionService_GetV2_Call) RunAndReturn(run func(context.Context, uint64) (*subscription.Subscription, error)) *SubscriptionService_GetV2_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // List provides a mock function with given fields: _a0, _a1
 func (_m *SubscriptionService) List(_a0 context.Context, _a1 subscription.Filter) ([]subscription.Subscription, error) {
 	ret := _m.Called(_a0, _a1)
@@ -234,6 +387,65 @@ func (_c *SubscriptionService_List_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// ListV2 provides a mock function with given fields: _a0, _a1
+func (_m *SubscriptionService) ListV2(_a0 context.Context, _a1 subscription.Filter) ([]subscription.Subscription, error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListV2")
+	}
+
+	var r0 []subscription.Subscription
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, subscription.Filter) ([]subscription.Subscription, error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, subscription.Filter) []subscription.Subscription); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]subscription.Subscription)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, subscription.Filter) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SubscriptionService_ListV2_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListV2'
+type SubscriptionService_ListV2_Call struct {
+	*mock.Call
+}
+
+// ListV2 is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 subscription.Filter
+func (_e *SubscriptionService_Expecter) ListV2(_a0 interface{}, _a1 interface{}) *SubscriptionService_ListV2_Call {
+	return &SubscriptionService_ListV2_Call{Call: _e.mock.On("ListV2", _a0, _a1)}
+}
+
+func (_c *SubscriptionService_ListV2_Call) Run(run func(_a0 context.Context, _a1 subscription.Filter)) *SubscriptionService_ListV2_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(subscription.Filter))
+	})
+	return _c
+}
+
+func (_c *SubscriptionService_ListV2_Call) Return(_a0 []subscription.Subscription, _a1 error) *SubscriptionService_ListV2_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SubscriptionService_ListV2_Call) RunAndReturn(run func(context.Context, subscription.Filter) ([]subscription.Subscription, error)) *SubscriptionService_ListV2_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Update provides a mock function with given fields: _a0, _a1
 func (_m *SubscriptionService) Update(_a0 context.Context, _a1 *subscription.Subscription) error {
 	ret := _m.Called(_a0, _a1)
@@ -277,6 +489,53 @@ func (_c *SubscriptionService_Update_Call) Return(_a0 error) *SubscriptionServic
 }
 
 func (_c *SubscriptionService_Update_Call) RunAndReturn(run func(context.Context, *subscription.Subscription) error) *SubscriptionService_Update_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateV2 provides a mock function with given fields: _a0, _a1
+func (_m *SubscriptionService) UpdateV2(_a0 context.Context, _a1 *subscription.Subscription) error {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateV2")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *subscription.Subscription) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SubscriptionService_UpdateV2_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateV2'
+type SubscriptionService_UpdateV2_Call struct {
+	*mock.Call
+}
+
+// UpdateV2 is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *subscription.Subscription
+func (_e *SubscriptionService_Expecter) UpdateV2(_a0 interface{}, _a1 interface{}) *SubscriptionService_UpdateV2_Call {
+	return &SubscriptionService_UpdateV2_Call{Call: _e.mock.On("UpdateV2", _a0, _a1)}
+}
+
+func (_c *SubscriptionService_UpdateV2_Call) Run(run func(_a0 context.Context, _a1 *subscription.Subscription)) *SubscriptionService_UpdateV2_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*subscription.Subscription))
+	})
+	return _c
+}
+
+func (_c *SubscriptionService_UpdateV2_Call) Return(_a0 error) *SubscriptionService_UpdateV2_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *SubscriptionService_UpdateV2_Call) RunAndReturn(run func(context.Context, *subscription.Subscription) error) *SubscriptionService_UpdateV2_Call {
 	_c.Call.Return(run)
 	return _c
 }
