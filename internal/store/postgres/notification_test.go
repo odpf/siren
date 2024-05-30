@@ -128,6 +128,77 @@ func (s *NotificationRepositoryTestSuite) TestCreate() {
 	}
 }
 
+func (s *NotificationRepositoryTestSuite) TestBulkCreate() {
+	type testCase struct {
+		Description              string
+		NotificationsToCreate    []notification.Notification
+		NumReturnedNotifications int
+		ErrString                string
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should create bulk notifications",
+			NotificationsToCreate: []notification.Notification{
+				{
+					NamespaceID: 1,
+					Type:        notification.TypeAlert,
+					Data:        map[string]any{},
+					Labels:      map[string]string{},
+					CreatedAt:   time.Now(),
+				},
+				{
+					NamespaceID: 2,
+					Type:        notification.TypeAlert,
+					Data:        map[string]any{},
+					Labels:      map[string]string{},
+					CreatedAt:   time.Now(),
+				},
+			},
+			NumReturnedNotifications: 2,
+		},
+		{
+			Description: "should return error if a notification is invalid",
+			NotificationsToCreate: []notification.Notification{
+				{
+					NamespaceID: 1,
+					Type:        notification.TypeAlert,
+					Data: map[string]any{
+						"k1": func(x chan struct{}) {
+							<-x
+						},
+					},
+					Labels:    map[string]string{},
+					CreatedAt: time.Now(),
+				},
+				{
+					NamespaceID: 2,
+					Type:        notification.TypeAlert,
+					Data:        map[string]any{},
+					Labels:      map[string]string{},
+					CreatedAt:   time.Now(),
+				},
+			},
+			ErrString: "sql: converting argument $3 type: json: unsupported type: func(chan struct {})",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			notifications, err := s.repository.BulkCreate(s.ctx, tc.NotificationsToCreate)
+			if err != nil {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			} else {
+				if len(notifications) != int(tc.NumReturnedNotifications) {
+					s.T().Fatalf("got num created notifications %d, expected was %d", len(notifications), tc.NumReturnedNotifications)
+				}
+			}
+		})
+	}
+}
+
 func (s *NotificationRepositoryTestSuite) TestList() {
 	type testCase struct {
 		Description           string

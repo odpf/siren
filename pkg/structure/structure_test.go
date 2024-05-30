@@ -1,10 +1,9 @@
-package notification
+package structure
 
 import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/goto/siren/core/alert"
 	"github.com/mitchellh/hashstructure/v2"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +32,7 @@ func Test_removeDuplicateStringValues(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := removeDuplicateStringValues(tt.strSlice)
+			got := RemoveDuplicate(tt.strSlice)
 			if diff := cmp.Diff(got, tt.want); diff != "" {
 				t.Errorf("got diff = %v", diff)
 			}
@@ -61,15 +60,20 @@ func Test_groupByLabels(t *testing.T) {
 	}, hashstructure.FormatV2, nil)
 	require.NoError(t, err)
 
+	type mockAlert struct {
+		ID     uint64
+		Labels map[string]string
+	}
+
 	tests := []struct {
 		name    string
-		alerts  []alert.Alert
-		want    map[uint64][]alert.Alert
+		alerts  []mockAlert
+		want    map[uint64][]mockAlert
 		wantErr bool
 	}{
 		{
 			name: "shoudl group alerts if labels are same",
-			alerts: []alert.Alert{
+			alerts: []mockAlert{
 				{
 					ID: 12,
 					Labels: map[string]string{
@@ -106,7 +110,7 @@ func Test_groupByLabels(t *testing.T) {
 					},
 				},
 			},
-			want: map[uint64][]alert.Alert{
+			want: map[uint64][]mockAlert{
 				hashKey1: {
 					{
 						ID: 12,
@@ -153,7 +157,7 @@ func Test_groupByLabels(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := groupByLabels(tt.alerts, groupBy)
+			got, err := GroupByLabels(tt.alerts, groupBy, func(a mockAlert) map[string]string { return a.Labels })
 			if (err != nil) != tt.wantErr {
 				t.Errorf("groupByLabels() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -60,6 +60,7 @@ func (s *NotificationTemplateTestSuite) SetupTest() {
 		DLQHandler: notification.HandlerConfig{
 			Enabled: false,
 		},
+		SubscriptionV2Enabled: true,
 	}
 	s.appConfig.Telemetry.OpenTelemetry.Enabled = false
 

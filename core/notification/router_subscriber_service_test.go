@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestDispatchSubscriberService_PrepareMessage(t *testing.T) {
+func TestRouterSubscriberService_PrepareMessage(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(*mocks.SubscriptionService, *mocks.SilenceService, *mocks.Notifier)
@@ -240,7 +240,7 @@ func TestDispatchSubscriberService_PrepareMessage(t *testing.T) {
 						Receivers: []subscription.Receiver{
 							{
 								ID:   1,
-								Type: testPluginType,
+								Type: testType,
 							},
 						},
 					},
@@ -262,6 +262,7 @@ func TestDispatchSubscriberService_PrepareMessage(t *testing.T) {
 		{
 			name: "should return no error if all flow passed and no silences",
 			n: notification.Notification{
+				ID:          "aa",
 				NamespaceID: 1,
 				Type:        receiver.TypeHTTP,
 				Template:    template.ReservedName_SystemDefault,
@@ -277,7 +278,7 @@ func TestDispatchSubscriberService_PrepareMessage(t *testing.T) {
 						Receivers: []subscription.Receiver{
 							{
 								ID:   1,
-								Type: testPluginType,
+								Type: testType,
 							},
 						},
 					},
@@ -297,14 +298,15 @@ func TestDispatchSubscriberService_PrepareMessage(t *testing.T) {
 			},
 			want: []notification.Message{
 				{
-					Status:       notification.MessageStatusEnqueued,
-					ReceiverType: testPluginType,
-					Configs:      map[string]any{},
-					Details:      map[string]any{"notification_type": string("http")},
-					MaxTries:     3,
+					Status:          notification.MessageStatusEnqueued,
+					NotificationIDs: []string{"aa"},
+					ReceiverType:    testType,
+					Configs:         map[string]any{},
+					Details:         map[string]any{"notification_type": string("http")},
+					MaxTries:        3,
 				},
 			},
-			want1: []log.Notification{{NamespaceID: 1, SubscriptionID: 123, ReceiverID: 1}},
+			want1: []log.Notification{{NamespaceID: 1, NotificationID: "aa", SubscriptionID: 123, ReceiverID: 1}},
 			want2: false,
 		},
 	}
@@ -316,15 +318,19 @@ func TestDispatchSubscriberService_PrepareMessage(t *testing.T) {
 				mockNotifier            = new(mocks.Notifier)
 				mockTemplateService     = new(mocks.TemplateService)
 			)
-			s := notification.NewDispatchSubscriberService(
-				saltlog.NewNoop(),
-				mockSubscriptionService,
-				mockSilenceService,
-				mockTemplateService,
-				map[string]notification.Notifier{
-					testPluginType: mockNotifier,
+			s := notification.NewRouterSubscriberService(
+				notification.Deps{
+					Cfg: notification.Config{
+						EnableSilenceFeature: true,
+					},
+					Logger:              saltlog.NewNoop(),
+					SubscriptionService: mockSubscriptionService,
+					SilenceService:      mockSilenceService,
+					TemplateService:     mockTemplateService,
 				},
-				true,
+				map[string]notification.Notifier{
+					testType: mockNotifier,
+				},
 			)
 
 			if tt.setup != nil {
@@ -333,25 +339,25 @@ func TestDispatchSubscriberService_PrepareMessage(t *testing.T) {
 
 			got, got1, got2, err := s.PrepareMessage(context.TODO(), tt.n)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DispatchSubscriberService.PrepareMessage() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("RouterSubscriberService.PrepareMessage() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if diff := cmp.Diff(got, tt.want,
 				cmpopts.IgnoreFields(notification.Message{}, "ID", "CreatedAt", "UpdatedAt"),
 				cmpopts.IgnoreUnexported(notification.Message{})); diff != "" {
-				t.Errorf("DispatchSubscriberService.PrepareMessage() diff = %v", diff)
+				t.Errorf("RouterSubscriberService.PrepareMessage() diff = %v", diff)
 			}
 			if diff := cmp.Diff(got1, tt.want1); diff != "" {
-				t.Errorf("DispatchSubscriberService.PrepareMessage() diff = %v", diff)
+				t.Errorf("RouterSubscriberService.PrepareMessage() diff = %v", diff)
 			}
 			if got2 != tt.want2 {
-				t.Errorf("DispatchSubscriberService.PrepareMessage() got2 = %v, want %v", got2, tt.want2)
+				t.Errorf("RouterSubscriberService.PrepareMessage() got2 = %v, want %v", got2, tt.want2)
 			}
 		})
 	}
 }
 
-func TestDispatchSubscriberService_PrepareMessageV2(t *testing.T) {
+func TestRouterSubscriberService_PrepareMessageV2(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(*mocks.SubscriptionService, *mocks.SilenceService, *mocks.Notifier)
@@ -399,7 +405,7 @@ func TestDispatchSubscriberService_PrepareMessageV2(t *testing.T) {
 				ss1.EXPECT().MatchByLabelsV2(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("uint64"), mock.AnythingOfType("map[string]string")).Return([]subscription.ReceiverView{
 					{
 						ID:   1,
-						Type: testPluginType,
+						Type: testType,
 					},
 				}, nil)
 				ss2.EXPECT().List(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("silence.Filter")).Return(nil, errors.New("some error"))
@@ -410,6 +416,7 @@ func TestDispatchSubscriberService_PrepareMessageV2(t *testing.T) {
 		{
 			name: "should return no error if all flow passed and no silences",
 			n: notification.Notification{
+				ID:          "aa",
 				NamespaceID: 1,
 				Type:        receiver.TypeHTTP,
 				Template:    template.ReservedName_SystemDefault,
@@ -418,7 +425,7 @@ func TestDispatchSubscriberService_PrepareMessageV2(t *testing.T) {
 				ss1.EXPECT().MatchByLabelsV2(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("uint64"), mock.AnythingOfType("map[string]string")).Return([]subscription.ReceiverView{
 					{
 						ID:             1,
-						Type:           testPluginType,
+						Type:           testType,
 						SubscriptionID: 123,
 					},
 				}, nil)
@@ -427,14 +434,15 @@ func TestDispatchSubscriberService_PrepareMessageV2(t *testing.T) {
 			},
 			want: []notification.Message{
 				{
-					Status:       notification.MessageStatusEnqueued,
-					ReceiverType: testPluginType,
-					Configs:      map[string]any{},
-					Details:      map[string]any{"notification_type": string("http")},
-					MaxTries:     3,
+					NotificationIDs: []string{"aa"},
+					Status:          notification.MessageStatusEnqueued,
+					ReceiverType:    testType,
+					Configs:         map[string]any{},
+					Details:         map[string]any{"notification_type": string("http")},
+					MaxTries:        3,
 				},
 			},
-			want1: []log.Notification{{NamespaceID: 1, SubscriptionID: 123, ReceiverID: 1}},
+			want1: []log.Notification{{NamespaceID: 1, NotificationID: "aa", SubscriptionID: 123, ReceiverID: 1}},
 			want2: false,
 		},
 	}
@@ -446,15 +454,19 @@ func TestDispatchSubscriberService_PrepareMessageV2(t *testing.T) {
 				mockSilenceService      = new(mocks.SilenceService)
 				mockTemplateService     = new(mocks.TemplateService)
 			)
-			s := notification.NewDispatchSubscriberService(
-				saltlog.NewNoop(),
-				mockSubscriptionService,
-				mockSilenceService,
-				mockTemplateService,
-				map[string]notification.Notifier{
-					testPluginType: mockNotifier,
+			s := notification.NewRouterSubscriberService(
+				notification.Deps{
+					Cfg: notification.Config{
+						EnableSilenceFeature: true,
+					},
+					Logger:              saltlog.NewNoop(),
+					SubscriptionService: mockSubscriptionService,
+					SilenceService:      mockSilenceService,
+					TemplateService:     mockTemplateService,
 				},
-				true,
+				map[string]notification.Notifier{
+					testType: mockNotifier,
+				},
 			)
 
 			if tt.setup != nil {
@@ -463,19 +475,19 @@ func TestDispatchSubscriberService_PrepareMessageV2(t *testing.T) {
 
 			got, got1, got2, err := s.PrepareMessageV2(context.TODO(), tt.n)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DispatchSubscriberService.PrepareMessageV2() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("RouterSubscriberService.PrepareMessageV2() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if diff := cmp.Diff(got, tt.want,
 				cmpopts.IgnoreFields(notification.Message{}, "ID", "CreatedAt", "UpdatedAt"),
 				cmpopts.IgnoreUnexported(notification.Message{})); diff != "" {
-				t.Errorf("DispatchSubscriberService.PrepareMessageV2() diff = %v", diff)
+				t.Errorf("RouterSubscriberService.PrepareMessageV2() diff = %v", diff)
 			}
 			if diff := cmp.Diff(got1, tt.want1); diff != "" {
-				t.Errorf("DispatchSubscriberService.PrepareMessageV2() diff = %v", diff)
+				t.Errorf("RouterSubscriberService.PrepareMessageV2() diff = %v", diff)
 			}
 			if got2 != tt.want2 {
-				t.Errorf("DispatchSubscriberService.PrepareMessageV2() got2 = %v, want %v", got2, tt.want2)
+				t.Errorf("RouterSubscriberService.PrepareMessageV2() got2 = %v, want %v", got2, tt.want2)
 			}
 		})
 	}

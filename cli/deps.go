@@ -90,13 +90,6 @@ func InitDeps(
 		}
 	}
 
-	alertRepository := postgres.NewAlertRepository(pgClient)
-	alertService := alert.NewService(
-		alertRepository,
-		logService,
-		alertTransformers,
-	)
-
 	namespaceRepository := postgres.NewNamespaceRepository(pgClient)
 	namespaceService := namespace.NewService(encryptor, namespaceRepository, providerService, configSyncers)
 
@@ -143,6 +136,24 @@ func InitDeps(
 	)
 
 	// notification
+	idempotencyRepository := postgres.NewIdempotencyRepository(pgClient)
+	notificationRepository := postgres.NewNotificationRepository(pgClient)
+	alertRepository := postgres.NewAlertRepository(pgClient)
+
+	notificationDeps := notification.Deps{
+		Logger:                logger,
+		Cfg:                   cfg.Notification,
+		Repository:            notificationRepository,
+		Q:                     queue,
+		LogService:            logService,
+		IdempotencyRepository: idempotencyRepository,
+		AlertRepository:       alertRepository,
+		ReceiverService:       receiverService,
+		SubscriptionService:   subscriptionService,
+		SilenceService:        silenceService,
+		TemplateService:       templateService,
+	}
+
 	notifierRegistry := map[string]notification.Notifier{
 		receiver.TypeSlack:        slackPluginService,
 		receiver.TypeSlackChannel: slackChannelPluginService,
@@ -151,25 +162,42 @@ func InitDeps(
 		receiver.TypeFile:         filePluginService,
 	}
 
-	idempotencyRepository := postgres.NewIdempotencyRepository(pgClient)
-	notificationRepository := postgres.NewNotificationRepository(pgClient)
+	routerRegistry := map[string]notification.Router{
+		notification.RouterReceiver: notification.NewRouterReceiverService(
+			notificationDeps,
+			notifierRegistry,
+		),
+		notification.RouterSubscriber: notification.NewRouterSubscriberService(
+			notificationDeps,
+			notifierRegistry,
+		),
+	}
+
+	dispatchServiceRegistry := map[string]notification.Dispatcher{
+		notification.DispatchKindBulkNotification: notification.NewDispatchBulkNotificationService(
+			notificationDeps,
+			notifierRegistry,
+			routerRegistry,
+		),
+		notification.DispatchKindSingleNotification: notification.NewDispatchSingleNotificationService(
+			notificationDeps,
+			notifierRegistry,
+			routerRegistry,
+		),
+	}
 
 	notificationService := notification.NewService(
+		notificationDeps,
+		dispatchServiceRegistry,
+	)
+
+	alertService := alert.NewService(
+		cfg.Alert,
 		logger,
-		cfg.Notification,
-		notificationRepository,
-		queue,
-		notifierRegistry,
-		notification.Deps{
-			LogService:            logService,
-			IdempotencyRepository: idempotencyRepository,
-			ReceiverService:       receiverService,
-			SubscriptionService:   subscriptionService,
-			SilenceService:        silenceService,
-			AlertService:          alertService,
-			TemplateService:       templateService,
-		},
-		cfg.Service.EnableSilenceFeature,
+		alertRepository,
+		logService,
+		notificationService,
+		alertTransformers,
 	)
 
 	return &api.Deps{

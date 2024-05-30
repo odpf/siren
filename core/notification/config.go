@@ -7,15 +7,16 @@ import (
 )
 
 type Config struct {
-	GroupBy                 []string      `mapstructure:"group_by" yaml:"group_by"`
 	MaxNumReceiverSelectors int           `mapstructure:"max_num_receiver_selectors" yaml:"max_num_receiver_selectors" default:"10"`
 	MaxMessagesReceiverFlow int           `mapstructure:"max_messages_receiver_flow" yaml:"max_messages_receiver_flow" default:"10"`
 	Queue                   queues.Config `mapstructure:"queue" yaml:"queue"`
 	MessageHandler          HandlerConfig `mapstructure:"message_handler" yaml:"message_handler"`
 	DLQHandler              HandlerConfig `mapstructure:"dlq_handler" yaml:"dlq_handler"`
+	GroupBy                 []string      `mapstructure:"group_by" yaml:"group_by"`
 
 	// experimental: derived from service.Config
 	SubscriptionV2Enabled bool
+	EnableSilenceFeature  bool
 }
 
 type HandlerConfig struct {

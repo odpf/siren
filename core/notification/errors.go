@@ -1,5 +1,7 @@
 package notification
 
-import "errors"
+import (
+	"errors"
+)
 
 var ErrNoMessage = errors.New("no message found")

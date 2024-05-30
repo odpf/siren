@@ -7,6 +7,7 @@ import (
 	"github.com/goto/salt/config"
 	"github.com/goto/salt/db"
 	"github.com/goto/salt/telemetry"
+	"github.com/goto/siren/core/alert"
 	"github.com/goto/siren/core/notification"
 	"github.com/goto/siren/internal/server"
 	"github.com/goto/siren/pkg/errors"
@@ -44,4 +45,5 @@ type Config struct {
 	Providers    plugins.Config      `mapstructure:"providers" yaml:"providers"`
 	Receivers    receivers.Config    `mapstructure:"receivers" yaml:"receivers"`
 	Notification notification.Config `mapstructure:"notification" yaml:"notification"`
+	Alert        alert.Config        `mapstructure:"alert" yaml:"alert"`
 }

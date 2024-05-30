@@ -20,6 +20,13 @@ INSERT INTO notifications (namespace_id, type, data, labels, valid_duration, tem
 RETURNING *
 `
 
+const notificationInsertNamedQuery = `
+INSERT INTO notifications
+	(namespace_id, type, data, labels, valid_duration, template, unique_key, receiver_selectors, created_at)
+    VALUES (:namespace_id, :type, :data, :labels, :valid_duration, :template, :unique_key, :receiver_selectors, now())
+RETURNING *
+`
+
 var notificationListQueryBuilder = sq.Select(
 	"id",
 	"namespace_id",
@@ -73,6 +80,40 @@ func (r *NotificationRepository) Create(ctx context.Context, n notification.Noti
 	}
 
 	return *newNModel.ToDomain(), nil
+}
+
+func (r *NotificationRepository) BulkCreate(ctx context.Context, ns []notification.Notification) ([]notification.Notification, error) {
+	var notificationsModel = []model.Notification{}
+
+	for _, n := range ns {
+		nModel := new(model.Notification)
+		nModel.FromDomain(n)
+		notificationsModel = append(notificationsModel, *nModel)
+	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "BulkCreate"),
+			attribute.String("db.sql.table", "notifications"),
+		}...,
+	)
+
+	rows, err := r.client.NamedQueryContext(ctx, notificationInsertNamedQuery, notificationsModel)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	notificationsDomain := []notification.Notification{}
+	for rows.Next() {
+		var notificationModel model.Notification
+		if err := rows.StructScan(&notificationModel); err != nil {
+			return nil, err
+		}
+		notificationsDomain = append(notificationsDomain, *notificationModel.ToDomain())
+	}
+	return notificationsDomain, nil
 }
 
 func (r *NotificationRepository) List(ctx context.Context, flt notification.Filter) ([]notification.Notification, error) {

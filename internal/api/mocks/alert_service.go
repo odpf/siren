@@ -24,7 +24,7 @@ func (_m *AlertService) EXPECT() *AlertService_Expecter {
 }
 
 // CreateAlerts provides a mock function with given fields: ctx, providerType, providerID, namespaceID, body
-func (_m *AlertService) CreateAlerts(ctx context.Context, providerType string, providerID uint64, namespaceID uint64, body map[string]interface{}) ([]alert.Alert, int, error) {
+func (_m *AlertService) CreateAlerts(ctx context.Context, providerType string, providerID uint64, namespaceID uint64, body map[string]interface{}) ([]alert.Alert, error) {
 	ret := _m.Called(ctx, providerType, providerID, namespaceID, body)
 
 	if len(ret) == 0 {
@@ -32,9 +32,8 @@ func (_m *AlertService) CreateAlerts(ctx context.Context, providerType string, p
 	}
 
 	var r0 []alert.Alert
-	var r1 int
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, uint64, uint64, map[string]interface{}) ([]alert.Alert, int, error)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, uint64, uint64, map[string]interface{}) ([]alert.Alert, error)); ok {
 		return rf(ctx, providerType, providerID, namespaceID, body)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, uint64, uint64, map[string]interface{}) []alert.Alert); ok {
@@ -45,19 +44,13 @@ func (_m *AlertService) CreateAlerts(ctx context.Context, providerType string, p
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, uint64, uint64, map[string]interface{}) int); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, uint64, uint64, map[string]interface{}) error); ok {
 		r1 = rf(ctx, providerType, providerID, namespaceID, body)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Error(1)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, string, uint64, uint64, map[string]interface{}) error); ok {
-		r2 = rf(ctx, providerType, providerID, namespaceID, body)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }
 
 // AlertService_CreateAlerts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAlerts'
@@ -82,12 +75,12 @@ func (_c *AlertService_CreateAlerts_Call) Run(run func(ctx context.Context, prov
 	return _c
 }
 
-func (_c *AlertService_CreateAlerts_Call) Return(_a0 []alert.Alert, _a1 int, _a2 error) *AlertService_CreateAlerts_Call {
-	_c.Call.Return(_a0, _a1, _a2)
+func (_c *AlertService_CreateAlerts_Call) Return(_a0 []alert.Alert, _a1 error) *AlertService_CreateAlerts_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *AlertService_CreateAlerts_Call) RunAndReturn(run func(context.Context, string, uint64, uint64, map[string]interface{}) ([]alert.Alert, int, error)) *AlertService_CreateAlerts_Call {
+func (_c *AlertService_CreateAlerts_Call) RunAndReturn(run func(context.Context, string, uint64, uint64, map[string]interface{}) ([]alert.Alert, error)) *AlertService_CreateAlerts_Call {
 	_c.Call.Return(run)
 	return _c
 }

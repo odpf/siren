@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/goto/siren/core/receiver"
 	"github.com/goto/siren/core/silence"
 )
 
@@ -35,6 +36,18 @@ type ReceiverView struct {
 	UpdatedAt      time.Time         `json:"updated_at"`
 	SubscriptionID uint64            `json:"subscription_id"`
 	Match          map[string]string `json:"match"`
+}
+
+func (rcv *ReceiverView) FromReceiver(r receiver.Receiver) {
+	rcv.ID = r.ID
+	rcv.Name = r.Name
+	rcv.Labels = r.Labels
+	rcv.Type = r.Type
+	rcv.Configurations = r.Configurations
+	rcv.ParentID = r.ParentID
+	rcv.CreatedAt = r.CreatedAt
+	rcv.UpdatedAt = r.UpdatedAt
+
 }
 
 type Receiver struct {

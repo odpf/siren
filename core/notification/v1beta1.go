@@ -19,18 +19,18 @@ func (m *Message) ToV1beta1Proto() (*sirenv1beta1.NotificationMessage, error) {
 	}
 
 	return &sirenv1beta1.NotificationMessage{
-		Id:             m.ID,
-		NotificationId: m.NotificationID,
-		Status:         m.Status.String(),
-		ReceiverType:   m.ReceiverType,
-		Configs:        configs,
-		Details:        details,
-		LastError:      m.LastError,
-		MaxTries:       uint64(m.MaxTries),
-		TryCount:       uint64(m.TryCount),
-		Retryable:      m.Retryable,
-		ExpiredAt:      timestamppb.New(m.ExpiredAt),
-		CreatedAt:      timestamppb.New(m.CreatedAt),
-		UpdatedAt:      timestamppb.New(m.UpdatedAt),
+		Id:              m.ID,
+		NotificationIds: m.NotificationIDs,
+		Status:          m.Status.String(),
+		ReceiverType:    m.ReceiverType,
+		Configs:         configs,
+		Details:         details,
+		LastError:       m.LastError,
+		MaxTries:        uint64(m.MaxTries),
+		TryCount:        uint64(m.TryCount),
+		Retryable:       m.Retryable,
+		ExpiredAt:       timestamppb.New(m.ExpiredAt),
+		CreatedAt:       timestamppb.New(m.CreatedAt),
+		UpdatedAt:       timestamppb.New(m.UpdatedAt),
 	}, nil
 }

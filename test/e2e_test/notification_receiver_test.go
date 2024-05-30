@@ -103,7 +103,7 @@ func (s *NotificationReceiverTestSuite) TearDownTest() {
 	s.cancelContext()
 }
 
-func (s *NotificationReceiverTestSuite) TestSendNotification() {
+func (s *NotificationReceiverTestSuite) TestSendNotificationSuccess() {
 	ctx := context.Background()
 
 	controlChan := make(chan struct{}, 1)
@@ -170,6 +170,93 @@ func (s *NotificationReceiverTestSuite) TestSendNotification() {
 	s.Require().NoError(err)
 
 	<-controlChan
+
+}
+
+func (s *NotificationReceiverTestSuite) TestSendNotificationFailureLimited() {
+	ctx := context.Background()
+
+	// add test server http receiver
+	configs, err := structpb.NewStruct(map[string]any{
+		"url": "dummy",
+	})
+	s.Require().NoError(err)
+	rcv, err := s.client.CreateReceiver(ctx, &sirenv1beta1.CreateReceiverRequest{
+		Name:           "notification-http",
+		Type:           "http",
+		Labels:         nil,
+		Configurations: configs,
+	})
+	s.Require().NoError(err)
+
+	time.Sleep(100 * time.Millisecond)
+
+	_, err = s.client.PostNotification(ctx, &sirenv1beta1.PostNotificationRequest{
+		Receivers: []*structpb.Struct{
+			{
+				Fields: map[string]*structpb.Value{
+					"id": structpb.NewStringValue(fmt.Sprintf("%d", rcv.GetId())),
+				},
+			},
+			{
+				Fields: map[string]*structpb.Value{
+					"id": structpb.NewStringValue(fmt.Sprintf("%d", rcv.GetId())),
+				},
+			},
+			{
+				Fields: map[string]*structpb.Value{
+					"id": structpb.NewStringValue(fmt.Sprintf("%d", rcv.GetId())),
+				},
+			},
+			{
+				Fields: map[string]*structpb.Value{
+					"id": structpb.NewStringValue(fmt.Sprintf("%d", rcv.GetId())),
+				},
+			},
+			{
+				Fields: map[string]*structpb.Value{
+					"id": structpb.NewStringValue(fmt.Sprintf("%d", rcv.GetId())),
+				},
+			},
+			{
+				Fields: map[string]*structpb.Value{
+					"id": structpb.NewStringValue(fmt.Sprintf("%d", rcv.GetId())),
+				},
+			},
+			{
+				Fields: map[string]*structpb.Value{
+					"id": structpb.NewStringValue(fmt.Sprintf("%d", rcv.GetId())),
+				},
+			},
+			{
+				Fields: map[string]*structpb.Value{
+					"id": structpb.NewStringValue(fmt.Sprintf("%d", rcv.GetId())),
+				},
+			},
+			{
+				Fields: map[string]*structpb.Value{
+					"id": structpb.NewStringValue(fmt.Sprintf("%d", rcv.GetId())),
+				},
+			},
+			{
+				Fields: map[string]*structpb.Value{
+					"id": structpb.NewStringValue(fmt.Sprintf("%d", rcv.GetId())),
+				},
+			},
+			{
+				Fields: map[string]*structpb.Value{
+					"id": structpb.NewStringValue(fmt.Sprintf("%d", rcv.GetId())),
+				},
+			},
+		},
+		Data: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"text":       structpb.NewStringValue("test send notification"),
+				"icon_emoji": structpb.NewStringValue(":smile:"),
+			},
+		},
+	})
+	s.Require().Equal("rpc error: code = InvalidArgument desc = number of receiver selectors should be less than or equal threshold 10", err.Error())
 
 }
 

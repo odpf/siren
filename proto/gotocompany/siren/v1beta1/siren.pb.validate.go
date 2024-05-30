@@ -11252,6 +11252,246 @@ var _ interface {
 	ErrorName() string
 } = PostNotificationResponseValidationError{}
 
+// Validate checks the field values on PostBulkNotificationsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PostBulkNotificationsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PostBulkNotificationsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PostBulkNotificationsRequestMultiError, or nil if none found.
+func (m *PostBulkNotificationsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PostBulkNotificationsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetNotifications() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PostBulkNotificationsRequestValidationError{
+						field:  fmt.Sprintf("Notifications[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PostBulkNotificationsRequestValidationError{
+						field:  fmt.Sprintf("Notifications[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PostBulkNotificationsRequestValidationError{
+					field:  fmt.Sprintf("Notifications[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return PostBulkNotificationsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// PostBulkNotificationsRequestMultiError is an error wrapping multiple
+// validation errors returned by PostBulkNotificationsRequest.ValidateAll() if
+// the designated constraints aren't met.
+type PostBulkNotificationsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PostBulkNotificationsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PostBulkNotificationsRequestMultiError) AllErrors() []error { return m }
+
+// PostBulkNotificationsRequestValidationError is the validation error returned
+// by PostBulkNotificationsRequest.Validate if the designated constraints
+// aren't met.
+type PostBulkNotificationsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PostBulkNotificationsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PostBulkNotificationsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PostBulkNotificationsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PostBulkNotificationsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PostBulkNotificationsRequestValidationError) ErrorName() string {
+	return "PostBulkNotificationsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PostBulkNotificationsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPostBulkNotificationsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PostBulkNotificationsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PostBulkNotificationsRequestValidationError{}
+
+// Validate checks the field values on PostBulkNotificationsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PostBulkNotificationsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PostBulkNotificationsResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// PostBulkNotificationsResponseMultiError, or nil if none found.
+func (m *PostBulkNotificationsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PostBulkNotificationsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return PostBulkNotificationsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// PostBulkNotificationsResponseMultiError is an error wrapping multiple
+// validation errors returned by PostBulkNotificationsResponse.ValidateAll()
+// if the designated constraints aren't met.
+type PostBulkNotificationsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PostBulkNotificationsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PostBulkNotificationsResponseMultiError) AllErrors() []error { return m }
+
+// PostBulkNotificationsResponseValidationError is the validation error
+// returned by PostBulkNotificationsResponse.Validate if the designated
+// constraints aren't met.
+type PostBulkNotificationsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PostBulkNotificationsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PostBulkNotificationsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PostBulkNotificationsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PostBulkNotificationsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PostBulkNotificationsResponseValidationError) ErrorName() string {
+	return "PostBulkNotificationsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PostBulkNotificationsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPostBulkNotificationsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PostBulkNotificationsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PostBulkNotificationsResponseValidationError{}
+
 // Validate checks the field values on ListNotificationMessagesRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -11380,8 +11620,6 @@ func (m *NotificationMessage) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for Id
-
-	// no validation rules for NotificationId
 
 	// no validation rules for Status
 

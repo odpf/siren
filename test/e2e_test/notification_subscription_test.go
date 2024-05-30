@@ -67,7 +67,7 @@ func (s *NotificationSubscriptionTestSuite) SetupTest() {
 	s.testBench, err = InitCortexEnvironment(s.appConfig)
 	s.Require().NoError(err)
 
-	// setup custom cortex configå
+	// setup custom cortex config
 	// TODO host.docker.internal only works for docker-desktop to call a service in host (siren)
 	pathProject, _ := os.Getwd()
 	rootProject := filepath.Dir(filepath.Dir(pathProject))

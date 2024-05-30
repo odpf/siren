@@ -63,16 +63,16 @@ func InitWithMaxTries(mt int) MessageOption {
 
 // Message is the model to be sent for a specific subscription's receiver
 type Message struct {
-	ID             string
-	NotificationID string
-	Status         MessageStatus
-	ReceiverType   string
-	Configs        map[string]any // the datasource to build vendor-specific configs
-	Details        map[string]any // the datasource to build vendor-specific message
-	MaxTries       int
-	ExpiredAt      time.Time
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID              string
+	NotificationIDs []string
+	Status          MessageStatus
+	ReceiverType    string
+	Configs         map[string]any // the datasource to build vendor-specific configs
+	Details         map[string]any // the datasource to build vendor-specific message
+	MaxTries        int
+	ExpiredAt       time.Time
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 
 	LastError string
 	TryCount  int
@@ -98,13 +98,13 @@ func InitMessage(
 	)
 
 	m := &Message{
-		ID:             uuid.NewString(),
-		NotificationID: n.ID,
-		Status:         MessageStatusEnqueued,
-		ReceiverType:   receiverType,
-		MaxTries:       defaultMaxTries,
-		CreatedAt:      timeNow,
-		UpdatedAt:      timeNow,
+		ID:              uuid.NewString(),
+		NotificationIDs: []string{n.ID},
+		Status:          MessageStatusEnqueued,
+		ReceiverType:    receiverType,
+		MaxTries:        defaultMaxTries,
+		CreatedAt:       timeNow,
+		UpdatedAt:       timeNow,
 	}
 
 	if notifierPlugin == nil {
@@ -176,6 +176,101 @@ func InitMessage(
 	}
 
 	m.Details[DetailsKeyNotificationType] = n.Type
+
+	return *m, nil
+}
+
+func InitMessageByMetaMessage(
+	ctx context.Context,
+	notifierPlugin Notifier,
+	templateService TemplateService,
+	mm MetaMessage,
+	opts ...MessageOption,
+) (Message, error) {
+	var (
+		timeNow = time.Now()
+		details = make(map[string]any)
+	)
+
+	m := &Message{
+		ID:              uuid.NewString(),
+		NotificationIDs: mm.NotificationIDs,
+		Status:          MessageStatusEnqueued,
+		ReceiverType:    mm.ReceiverType,
+		MaxTries:        defaultMaxTries,
+		CreatedAt:       timeNow,
+		UpdatedAt:       timeNow,
+	}
+
+	if notifierPlugin == nil {
+		return Message{}, errors.New("notifierPlugin cannot be nil")
+	}
+
+	newConfigs, err := notifierPlugin.PreHookQueueTransformConfigs(ctx, mm.ReceiverConfigs)
+	if err != nil {
+		return Message{}, err
+	}
+	m.Configs = newConfigs
+
+	for _, opt := range opts {
+		opt(m)
+	}
+
+	if m.expiryDuration != 0 {
+		m.ExpiredAt = m.CreatedAt.Add(m.expiryDuration)
+	}
+
+	if mm.Template == "" {
+		return Message{}, errors.ErrInvalid.WithMsgf("found no template, template is mandatory")
+	}
+	//TODO fetch template if any, if not exist, check provider type, if exist use the default template, if not pass as-is
+	// if there is template, render and replace detail with the new one
+
+	var contentTemplate string
+
+	if template.IsReservedName(mm.Template) {
+		contentTemplate = notifierPlugin.GetSystemDefaultTemplate()
+	} else {
+		tmpl, err := templateService.GetByName(ctx, mm.Template)
+		if err != nil {
+			return Message{}, err
+		}
+
+		templateMessages, err := template.MessagesFromBody(tmpl)
+		if err != nil {
+			return Message{}, err
+		}
+
+		contentTmpl, err := template.MessageContentByReceiverType(templateMessages, mm.ReceiverType)
+		if err != nil {
+			return Message{}, err
+		}
+		contentTemplate = contentTmpl
+	}
+
+	if contentTemplate != "" {
+		renderedDetailString, err := template.RenderBody(contentTemplate, mm, template.DelimMessageLeft, template.DelimMessageRight)
+		if err != nil {
+			return Message{}, errors.ErrInvalid.WithMsgf("failed to render template receiver %s: %s", mm.ReceiverType, err.Error())
+		}
+
+		var messageDetails map[string]any
+		if err := yaml.Unmarshal([]byte(renderedDetailString), &messageDetails); err != nil {
+			return Message{}, errors.ErrInvalid.WithMsgf("failed to unmarshal rendered template receiver %s: %s, rendered template: %v", mm.ReceiverType, err.Error(), renderedDetailString)
+		}
+		m.Details = messageDetails
+	} else {
+		for k, v := range mm.Labels {
+			details[k] = v
+		}
+		for k, v := range mm.Data {
+			details[k] = v
+		}
+
+		m.Details = details
+	}
+
+	m.Details[DetailsKeyNotificationType] = mm.NotificationType
 
 	return *m, nil
 }

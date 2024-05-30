@@ -10,6 +10,7 @@ import (
 	"github.com/goto/salt/dockertestx"
 	"github.com/goto/salt/log"
 	"github.com/goto/siren/core/alert"
+	"github.com/goto/siren/core/silence"
 	"github.com/goto/siren/internal/store/postgres"
 	"github.com/goto/siren/pkg/pgc"
 	"github.com/ory/dockertest/v3"
@@ -210,7 +211,7 @@ func (s *AlertsRepositoryTestSuite) TestBulkUpdateSilence() {
 	var testCases = []testCase{
 		{
 			Description:   "should update 2 alerts to silence",
-			SilenceStatus: alert.SilenceStatusTotal,
+			SilenceStatus: silence.StatusTotal,
 			ExpectedAlerts: []alert.Alert{
 				{
 					ID:            2,
@@ -220,7 +221,7 @@ func (s *AlertsRepositoryTestSuite) TestBulkUpdateSilence() {
 					MetricValue:   "97.95",
 					Severity:      "WARNING",
 					Rule:          "cpu-usage",
-					SilenceStatus: alert.SilenceStatusTotal,
+					SilenceStatus: silence.StatusTotal,
 				},
 				{
 					ID:            3,
@@ -230,7 +231,7 @@ func (s *AlertsRepositoryTestSuite) TestBulkUpdateSilence() {
 					MetricValue:   "98.30",
 					Severity:      "CRITICAL",
 					Rule:          "cpu-usage",
-					SilenceStatus: alert.SilenceStatusTotal,
+					SilenceStatus: silence.StatusTotal,
 				},
 			},
 		},

@@ -127,6 +127,27 @@ paths:
             type: object
       tags:
         - Alert
+  /v1beta1/bulk-notifications:
+    post:
+      summary: Post bulk event notifications
+      operationId: SirenService_PostBulkNotifications
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/PostBulkNotificationsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PostBulkNotificationsRequest'
+      tags:
+        - Notification
   /v1beta1/namespaces:
     get:
       summary: list namespaces
@@ -1322,8 +1343,10 @@ definitions:
     properties:
       id:
         type: string
-      notification_id:
-        type: string
+      notification_ids:
+        type: array
+        items:
+          type: string
       status:
         type: string
       receiver_type:
@@ -1365,6 +1388,21 @@ definitions:
       The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
+  PostBulkNotificationsRequest:
+    type: object
+    properties:
+      notifications:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Notification'
+  PostBulkNotificationsResponse:
+    type: object
+    properties:
+      notification_ids:
+        type: array
+        items:
+          type: string
   PostNotificationRequest:
     type: object
     properties:

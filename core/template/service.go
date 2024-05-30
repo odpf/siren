@@ -87,7 +87,7 @@ func RenderWithEnrichedDefault(templateBody string, templateVars []Variable, req
 	return RenderBody(templateBody, enrichedVariables, defaultLeftDelim, defaultrightDelim)
 }
 
-func RenderBody(templateBody string, aStruct interface{}, leftDelim, rightDelim string) (string, error) {
+func RenderBody(templateBody string, aStruct any, leftDelim, rightDelim string) (string, error) {
 	var tpl bytes.Buffer
 	tmpl, err := texttemplate.New("parser").Funcs(defaultFuncMap).Delims(leftDelim, rightDelim).Parse(templateBody)
 	if err != nil {

@@ -2,7 +2,6 @@ package v1beta1
 
 import (
 	"context"
-	"time"
 
 	"github.com/goto/siren/core/alert"
 	sirenv1beta1 "github.com/goto/siren/proto/gotocompany/siren/v1beta1"
@@ -76,7 +75,7 @@ func (s *GRPCServer) CreateAlertsWithNamespace(ctx context.Context, req *sirenv1
 }
 
 func (s *GRPCServer) createAlerts(ctx context.Context, providerType string, providerID uint64, namespaceID uint64, body map[string]any) ([]*sirenv1beta1.Alert, error) {
-	createdAlerts, firingLen, err := s.alertService.CreateAlerts(ctx, providerType, providerID, namespaceID, body)
+	createdAlerts, err := s.alertService.CreateAlerts(ctx, providerType, providerID, namespaceID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -94,22 +93,6 @@ func (s *GRPCServer) createAlerts(ctx context.Context, providerType string, prov
 			TriggeredAt:  timestamppb.New(item.TriggeredAt),
 		}
 		items = append(items, alertHistoryItem)
-	}
-
-	if len(createdAlerts) > 0 {
-		// Publish to notification service
-		ns, err := s.notificationService.BuildFromAlerts(createdAlerts, firingLen, time.Now())
-		if err != nil {
-			s.logger.Warn("failed to build notifications from alert", "err", err, "alerts", createdAlerts)
-		}
-
-		for _, n := range ns {
-			if _, err := s.notificationService.Dispatch(ctx, n); err != nil {
-				s.logger.Warn("failed to send alert as notification", "err", err, "notification", n)
-			}
-		}
-	} else {
-		s.logger.Warn("failed to send alert as notification, empty created alerts")
 	}
 
 	return items, nil

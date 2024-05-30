@@ -2,6 +2,7 @@ package template
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 	texttemplate "text/template"
 
@@ -36,6 +37,18 @@ var defaultFuncMap = func() texttemplate.FuncMap {
 		},
 		"stringSlice": func(s ...string) []string {
 			return s
+		},
+		"sub": func(a, b string) string {
+			aint, err := strconv.ParseInt(a, 10, 64)
+			if err != nil {
+				return "unknown" // fallback
+			}
+			bint, err := strconv.ParseInt(b, 10, 64)
+			if err != nil {
+				return "unknown" // fallback
+			}
+
+			return strconv.FormatInt(aint-bint, 10)
 		},
 	}
 

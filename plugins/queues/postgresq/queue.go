@@ -48,13 +48,13 @@ WHERE id = $6
 
 	queueEnqueueNamedQuery = fmt.Sprintf(`
 INSERT INTO %s
-	(id, notification_id, status, receiver_type, configs, details, last_error, max_tries, try_count, retryable, expired_at, created_at, updated_at)
-    VALUES (:id,:notification_id,:status,:receiver_type,:configs,:details,:last_error,:max_tries,:try_count,:retryable,:expired_at,:created_at,:updated_at)
+	(id, notification_ids, status, receiver_type, configs, details, last_error, max_tries, try_count, retryable, expired_at, created_at, updated_at)
+    VALUES (:id,:notification_ids,:status,:receiver_type,:configs,:details,:last_error,:max_tries,:try_count,:retryable,:expired_at,:created_at,:updated_at)
 `, MessageQueueTableFullName)
 
 	messagesListQueryBuilder = sq.Select(
 		"id",
-		"notification_id",
+		"notification_ids",
 		"status",
 		"receiver_type",
 		"configs",
@@ -81,7 +81,7 @@ WHERE id IN (
     FOR UPDATE SKIP LOCKED
     LIMIT %d
 )
-RETURNING *
+RETURNING id, status, receiver_type, configs, details, last_error, max_tries, try_count, retryable, expired_at, created_at, updated_at
 `, MessageQueueTableFullName, notification.MessageStatusPending, MessageQueueTableFullName, notification.MessageStatusEnqueued, notification.MessageStatusPending, receiverTypesList, batchSize)
 }
 
@@ -97,7 +97,7 @@ WHERE id IN (
     FOR UPDATE SKIP LOCKED
     LIMIT %d
 )
-RETURNING *
+RETURNING id, status, receiver_type, configs, details, last_error, max_tries, try_count, retryable, expired_at, created_at, updated_at
 `, MessageQueueTableFullName, notification.MessageStatusPending, MessageQueueTableFullName, notification.MessageStatusFailed, notification.MessageStatusPending, receiverTypesList, batchSize)
 }
 
@@ -241,9 +241,9 @@ func (q *Queue) Stop(ctx context.Context) error {
 }
 
 func (q *Queue) ListMessages(ctx context.Context, notificationID string) ([]notification.Message, error) {
-	var queryBuilder = messagesListQueryBuilder.Where("notification_id = ?", notificationID)
+	var queryBuilder = messagesListQueryBuilder.Where(fmt.Sprintf("notification_ids ? '%s'", notificationID))
 
-	query, args, err := queryBuilder.PlaceholderFormat(sq.Dollar).ToSql()
+	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return nil, err
 	}

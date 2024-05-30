@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	saltlog "github.com/goto/salt/log"
 	"github.com/goto/siren/core/log"
 	"github.com/goto/siren/core/notification"
 	"github.com/goto/siren/core/notification/mocks"
@@ -15,7 +16,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestDispatchReceiverService_PrepareMessage(t *testing.T) {
+func TestRouterReceiverService_PrepareMessage(t *testing.T) {
 	var notificationID = "1234-5678"
 	tests := []struct {
 		name    string
@@ -63,7 +64,7 @@ func TestDispatchReceiverService_PrepareMessage(t *testing.T) {
 				rs.EXPECT().List(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("receiver.Filter")).Return([]receiver.Receiver{
 					{
 						ID:   11,
-						Type: testPluginType},
+						Type: testType},
 				}, nil)
 				n.EXPECT().PreHookQueueTransformConfigs(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("map[string]interface {}")).Return(nil, errors.New("some error"))
 			},
@@ -83,7 +84,7 @@ func TestDispatchReceiverService_PrepareMessage(t *testing.T) {
 				rs.EXPECT().List(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("receiver.Filter")).Return([]receiver.Receiver{
 					{
 						ID:   11,
-						Type: testPluginType,
+						Type: testType,
 					},
 				}, nil)
 				n.EXPECT().PreHookQueueTransformConfigs(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("map[string]interface {}")).Return(map[string]any{}, nil)
@@ -105,7 +106,7 @@ func TestDispatchReceiverService_PrepareMessage(t *testing.T) {
 				rs.EXPECT().List(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("receiver.Filter")).Return([]receiver.Receiver{
 					{
 						ID:   11,
-						Type: testPluginType,
+						Type: testType,
 					},
 				}, nil)
 				n.EXPECT().PreHookQueueTransformConfigs(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("map[string]interface {}")).Return(map[string]any{}, nil)
@@ -113,12 +114,12 @@ func TestDispatchReceiverService_PrepareMessage(t *testing.T) {
 			},
 			want: []notification.Message{
 				{
-					Status:         notification.MessageStatusEnqueued,
-					NotificationID: notificationID,
-					ReceiverType:   testPluginType,
-					Configs:        map[string]any{},
-					Details:        map[string]any{"notification_type": string("")},
-					MaxTries:       3,
+					Status:          notification.MessageStatusEnqueued,
+					NotificationIDs: []string{notificationID},
+					ReceiverType:    testType,
+					Configs:         map[string]any{},
+					Details:         map[string]any{"notification_type": string("")},
+					MaxTries:        3,
 				},
 			},
 			want1: []log.Notification{{
@@ -134,34 +135,38 @@ func TestDispatchReceiverService_PrepareMessage(t *testing.T) {
 				mockNotifier        = new(mocks.Notifier)
 				mockTemplateService = new(mocks.TemplateService)
 			)
-			s := notification.NewDispatchReceiverService(
-				notification.DispatchReceiverConfig{
-					MaxMessagesReceiverFlow: 10,
-					MaxNumReceiverSelectors: 10,
+			s := notification.NewRouterReceiverService(
+				notification.Deps{
+					Cfg: notification.Config{
+						MaxMessagesReceiverFlow: 10,
+						MaxNumReceiverSelectors: 10,
+					},
+					Logger:          saltlog.NewNoop(),
+					ReceiverService: mockReceiverService,
+					TemplateService: mockTemplateService,
 				},
-				mockReceiverService,
-				mockTemplateService,
 				map[string]notification.Notifier{
-					testPluginType: mockNotifier,
-				})
+					testType: mockNotifier,
+				},
+			)
 			if tt.setup != nil {
 				tt.setup(mockReceiverService, mockNotifier)
 			}
 			got, got1, got2, err := s.PrepareMessage(context.TODO(), tt.n)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DispatchReceiverService.PrepareMessage() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("RouterReceiverService.PrepareMessage() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if diff := cmp.Diff(got, tt.want,
 				cmpopts.IgnoreFields(notification.Message{}, "ID", "CreatedAt", "UpdatedAt"),
 				cmpopts.IgnoreUnexported(notification.Message{})); diff != "" {
-				t.Errorf("DispatchReceiverService.PrepareMessage() diff = %v", diff)
+				t.Errorf("RouterReceiverService.PrepareMessage() diff = %v", diff)
 			}
 			if diff := cmp.Diff(got1, tt.want1); diff != "" {
-				t.Errorf("DispatchReceiverService.PrepareMessage() diff = %v", diff)
+				t.Errorf("RouterReceiverService.PrepareMessage() diff = %v", diff)
 			}
 			if got2 != tt.want2 {
-				t.Errorf("DispatchReceiverService.PrepareMessage() got2 = %v, want %v", got2, tt.want2)
+				t.Errorf("RouterReceiverService.PrepareMessage() got2 = %v, want %v", got2, tt.want2)
 			}
 		})
 	}

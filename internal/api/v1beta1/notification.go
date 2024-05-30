@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/goto/siren/core/notification"
 	"github.com/goto/siren/core/template"
@@ -66,27 +67,87 @@ func (s *GRPCServer) PostNotification(ctx context.Context, req *sirenv1beta1.Pos
 		notificationTemplate = req.GetTemplate()
 	}
 
-	n := notification.Notification{
-		Type:              notification.TypeEvent,
-		Data:              req.GetData().AsMap(),
-		Labels:            req.GetLabels(),
-		Template:          notificationTemplate,
-		ReceiverSelectors: receiverSelectors,
-	}
-
-	notificationID, err := s.notificationService.Dispatch(ctx, n)
+	notificationIDs, err := s.notificationService.Dispatch(ctx, []notification.Notification{
+		{
+			Type:              notification.TypeEvent,
+			Data:              req.GetData().AsMap(),
+			Labels:            req.GetLabels(),
+			Template:          notificationTemplate,
+			ReceiverSelectors: receiverSelectors,
+		},
+	}, notification.DispatchKindSingleNotification)
 	if err != nil {
 		return nil, s.generateRPCErr(err)
 	}
 
+	if len(notificationIDs) != 1 {
+		return nil, s.generateRPCErr(errors.ErrInternal.WithMsgf("should send 1 notification only but got %d", len(notificationIDs)))
+	}
+
 	if idempotencyKey != "" {
-		if err := s.notificationService.InsertIdempotency(ctx, idempotencyScope, idempotencyKey, notificationID); err != nil {
+		if err := s.notificationService.InsertIdempotency(ctx, idempotencyScope, idempotencyKey, notificationIDs[0]); err != nil {
 			return nil, s.generateRPCErr(err)
 		}
 	}
 
 	return &sirenv1beta1.PostNotificationResponse{
-		NotificationId: notificationID,
+		NotificationId: notificationIDs[0],
+	}, nil
+}
+
+func (s *GRPCServer) PostBulkNotifications(ctx context.Context, req *sirenv1beta1.PostBulkNotificationsRequest) (*sirenv1beta1.PostBulkNotificationsResponse, error) {
+	if len(req.GetNotifications()) == 0 {
+		return nil, s.generateRPCErr(errors.ErrInvalid.WithMsgf("no bulk notifications found"))
+	}
+	idempotencyScope := api.GetHeaderString(ctx, s.headers.IdempotencyScope)
+	if idempotencyScope == "" {
+		idempotencyScope = notificationAPIScope
+	}
+
+	idempotencyKey := api.GetHeaderString(ctx, s.headers.IdempotencyKey)
+	if idempotencyKey != "" {
+		if notificationIDs, err := s.notificationService.CheckIdempotency(ctx, idempotencyScope, idempotencyKey); notificationIDs != "" {
+			splittedNotificationIDs := strings.Split(notificationIDs, ",")
+			return &sirenv1beta1.PostBulkNotificationsResponse{
+				NotificationIds: splittedNotificationIDs,
+			}, nil
+		} else if errors.Is(err, errors.ErrNotFound) {
+			s.logger.Debug("no idempotency found with detail", "scope", idempotencyScope, "key", idempotencyKey)
+		} else {
+			return nil, s.generateRPCErr(fmt.Errorf("error when checking idempotency: %w", err))
+		}
+	}
+
+	notifications := []notification.Notification{}
+
+	for _, nProto := range req.GetNotifications() {
+		var notificationTemplate = template.ReservedName_SystemDefault
+		if nProto.GetTemplate() != "" {
+			notificationTemplate = nProto.GetTemplate()
+		}
+		notifications = append(notifications, notification.Notification{
+			NamespaceID:   nProto.GetNamespaceId(),
+			Type:          notification.TypeEvent,
+			Data:          nProto.GetData().AsMap(),
+			Labels:        nProto.GetLabels(),
+			ValidDuration: nProto.GetValidDuration().AsDuration(),
+			Template:      notificationTemplate,
+		})
+	}
+
+	notificationIDs, err := s.notificationService.Dispatch(ctx, notifications, notification.DispatchKindBulkNotification)
+	if err != nil {
+		return nil, s.generateRPCErr(err)
+	}
+
+	if idempotencyKey != "" {
+		if err := s.notificationService.InsertIdempotency(ctx, idempotencyScope, idempotencyKey, strings.Join(notificationIDs, ",")); err != nil {
+			return nil, s.generateRPCErr(err)
+		}
+	}
+
+	return &sirenv1beta1.PostBulkNotificationsResponse{
+		NotificationIds: notificationIDs,
 	}, nil
 }
 

@@ -59,6 +59,7 @@ type SirenServiceClient interface {
 	GetSilence(ctx context.Context, in *GetSilenceRequest, opts ...grpc.CallOption) (*GetSilenceResponse, error)
 	ExpireSilence(ctx context.Context, in *ExpireSilenceRequest, opts ...grpc.CallOption) (*ExpireSilenceResponse, error)
 	PostNotification(ctx context.Context, in *PostNotificationRequest, opts ...grpc.CallOption) (*PostNotificationResponse, error)
+	PostBulkNotifications(ctx context.Context, in *PostBulkNotificationsRequest, opts ...grpc.CallOption) (*PostBulkNotificationsResponse, error)
 	ListNotificationMessages(ctx context.Context, in *ListNotificationMessagesRequest, opts ...grpc.CallOption) (*ListNotificationMessagesResponse, error)
 	ListNotifications(ctx context.Context, in *ListNotificationsRequest, opts ...grpc.CallOption) (*ListNotificationsResponse, error)
 }
@@ -396,6 +397,15 @@ func (c *sirenServiceClient) PostNotification(ctx context.Context, in *PostNotif
 	return out, nil
 }
 
+func (c *sirenServiceClient) PostBulkNotifications(ctx context.Context, in *PostBulkNotificationsRequest, opts ...grpc.CallOption) (*PostBulkNotificationsResponse, error) {
+	out := new(PostBulkNotificationsResponse)
+	err := c.cc.Invoke(ctx, "/gotocompany.siren.v1beta1.SirenService/PostBulkNotifications", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *sirenServiceClient) ListNotificationMessages(ctx context.Context, in *ListNotificationMessagesRequest, opts ...grpc.CallOption) (*ListNotificationMessagesResponse, error) {
 	out := new(ListNotificationMessagesResponse)
 	err := c.cc.Invoke(ctx, "/gotocompany.siren.v1beta1.SirenService/ListNotificationMessages", in, out, opts...)
@@ -455,6 +465,7 @@ type SirenServiceServer interface {
 	GetSilence(context.Context, *GetSilenceRequest) (*GetSilenceResponse, error)
 	ExpireSilence(context.Context, *ExpireSilenceRequest) (*ExpireSilenceResponse, error)
 	PostNotification(context.Context, *PostNotificationRequest) (*PostNotificationResponse, error)
+	PostBulkNotifications(context.Context, *PostBulkNotificationsRequest) (*PostBulkNotificationsResponse, error)
 	ListNotificationMessages(context.Context, *ListNotificationMessagesRequest) (*ListNotificationMessagesResponse, error)
 	ListNotifications(context.Context, *ListNotificationsRequest) (*ListNotificationsResponse, error)
 	mustEmbedUnimplementedSirenServiceServer()
@@ -571,6 +582,9 @@ func (UnimplementedSirenServiceServer) ExpireSilence(context.Context, *ExpireSil
 }
 func (UnimplementedSirenServiceServer) PostNotification(context.Context, *PostNotificationRequest) (*PostNotificationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PostNotification not implemented")
+}
+func (UnimplementedSirenServiceServer) PostBulkNotifications(context.Context, *PostBulkNotificationsRequest) (*PostBulkNotificationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PostBulkNotifications not implemented")
 }
 func (UnimplementedSirenServiceServer) ListNotificationMessages(context.Context, *ListNotificationMessagesRequest) (*ListNotificationMessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListNotificationMessages not implemented")
@@ -1239,6 +1253,24 @@ func _SirenService_PostNotification_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SirenService_PostBulkNotifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostBulkNotificationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SirenServiceServer).PostBulkNotifications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gotocompany.siren.v1beta1.SirenService/PostBulkNotifications",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SirenServiceServer).PostBulkNotifications(ctx, req.(*PostBulkNotificationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SirenService_ListNotificationMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListNotificationMessagesRequest)
 	if err := dec(in); err != nil {
@@ -1425,6 +1457,10 @@ var SirenService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PostNotification",
 			Handler:    _SirenService_PostNotification_Handler,
+		},
+		{
+			MethodName: "PostBulkNotifications",
+			Handler:    _SirenService_PostBulkNotifications_Handler,
 		},
 		{
 			MethodName: "ListNotificationMessages",

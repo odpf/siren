@@ -48,6 +48,7 @@ func NewAlertRepository(client *pgc.Client) *AlertRepository {
 	return &AlertRepository{client}
 }
 
+// Deprecated: replaced by BulkCreate
 func (r AlertRepository) Create(ctx context.Context, alrt alert.Alert) (alert.Alert, error) {
 	var alertModel model.Alert
 	alertModel.FromDomain(alrt)

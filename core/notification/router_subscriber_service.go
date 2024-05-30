@@ -2,9 +2,9 @@ package notification
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
-	saltlog "github.com/goto/salt/log"
 	"github.com/goto/siren/core/log"
 	"github.com/goto/siren/core/silence"
 	"github.com/goto/siren/pkg/errors"
@@ -14,51 +14,39 @@ import (
 )
 
 const (
-	metricDispatchSubscriberAttributePrepareMessage = "preparemessage.status"
-	metricDispatchSubscriberAttributePrepareSuccess = "preparemessage.success"
+	metricRouterSubscriberAttributePrepareMessage = "preparemessage.status"
+	metricRouterSubscriberAttributePrepareSuccess = "preparemessage.success"
 
-	metricDispatchSubscriberStatusMatchError       = "MATCH_ERROR"
-	metricDispatchSubscriberStatusMatchNotFound    = "MATCH_NOT_FOUND"
-	metricDispatchSubscriberStatusMessageInitError = "MESSAGE_INIT_ERROR"
-	metricDispatchSubscriberStatusNotifierError    = "NOTIFIER_ERROR"
-	metricDispatchSubscriberStatusSuccess          = "SUCCESS"
+	metricRouterSubscriberStatusMatchError       = "MATCH_ERROR"
+	metricRouterSubscriberStatusMatchNotFound    = "MATCH_NOT_FOUND"
+	metricRouterSubscriberStatusMessageInitError = "MESSAGE_INIT_ERROR"
+	metricRouterSubscriberStatusNotifierError    = "NOTIFIER_ERROR"
+	metricRouterSubscriberStatusSuccess          = "SUCCESS"
 )
 
-type DispatchSubscriberService struct {
-	logger                          saltlog.Logger
-	subscriptionService             SubscriptionService
-	silenceService                  SilenceService
-	templateService                 TemplateService
-	notifierPlugins                 map[string]Notifier
-	metricCounterDispatchSubscriber metric.Int64Counter
-	enableSilenceFeature            bool
+type RouterSubscriberService struct {
+	deps                          Deps
+	notifierPlugins               map[string]Notifier
+	metricCounterRouterSubscriber metric.Int64Counter
 }
 
-func NewDispatchSubscriberService(
-	logger saltlog.Logger,
-	subscriptionService SubscriptionService,
-	silenceService SilenceService,
-	templateService TemplateService,
+func NewRouterSubscriberService(
+	deps Deps,
 	notifierPlugins map[string]Notifier,
-	enableSilenceFeature bool,
-) *DispatchSubscriberService {
-	metricCounterDispatchSubscriber, err := otel.Meter("github.com/goto/siren/core/notification").
+) *RouterSubscriberService {
+	metricCounterRouterSubscriber, err := otel.Meter("github.com/goto/siren/core/notification").
 		Int64Counter("siren.notification.dispatch.subscriber")
 	if err != nil {
 		otel.Handle(err)
 	}
-	return &DispatchSubscriberService{
-		logger:                          logger,
-		subscriptionService:             subscriptionService,
-		silenceService:                  silenceService,
-		notifierPlugins:                 notifierPlugins,
-		enableSilenceFeature:            enableSilenceFeature,
-		templateService:                 templateService,
-		metricCounterDispatchSubscriber: metricCounterDispatchSubscriber,
+	return &RouterSubscriberService{
+		deps:                          deps,
+		notifierPlugins:               notifierPlugins,
+		metricCounterRouterSubscriber: metricCounterRouterSubscriber,
 	}
 }
 
-func (s *DispatchSubscriberService) getNotifierPlugin(receiverType string) (Notifier, error) {
+func (s *RouterSubscriberService) getNotifierPlugin(receiverType string) (Notifier, error) {
 	notifierPlugin, exist := s.notifierPlugins[receiverType]
 	if !exist {
 		return nil, errors.ErrInvalid.WithMsgf("unsupported receiver type: %q", receiverType)
@@ -66,7 +54,7 @@ func (s *DispatchSubscriberService) getNotifierPlugin(receiverType string) (Noti
 	return notifierPlugin, nil
 }
 
-func (s *DispatchSubscriberService) PrepareMessage(ctx context.Context, n Notification) ([]Message, []log.Notification, bool, error) {
+func (s *RouterSubscriberService) PrepareMessage(ctx context.Context, n Notification) ([]Message, []log.Notification, bool, error) {
 
 	var (
 		messages         = make([]Message, 0)
@@ -74,29 +62,28 @@ func (s *DispatchSubscriberService) PrepareMessage(ctx context.Context, n Notifi
 		hasSilenced      bool
 	)
 
-	subscriptions, err := s.subscriptionService.MatchByLabels(ctx, n.NamespaceID, n.Labels)
+	subscriptions, err := s.deps.SubscriptionService.MatchByLabels(ctx, n.NamespaceID, n.Labels)
 	if err != nil {
 		return nil, nil, false, err
 	}
 
 	if len(subscriptions) == 0 {
-		// telemetry.IncrementInt64Counter(ctx, telemetry.MetricNotificationSubscriberNotFound)
 		return nil, nil, false, errors.ErrInvalid.WithMsgf("not matching any subscription")
 	}
 
 	for _, sub := range subscriptions {
 
 		if len(sub.Receivers) == 0 {
-			s.logger.Warn(fmt.Sprintf("invalid subscription with id %d, no receiver found", sub.ID))
+			s.deps.Logger.Warn(fmt.Sprintf("invalid subscription with id %d, no receiver found", sub.ID))
 			continue
 		}
 
 		var silences []silence.Silence
 
 		// Reliability of silence feature need to be tested more
-		if s.enableSilenceFeature {
+		if s.deps.Cfg.EnableSilenceFeature {
 			// try silencing by labels
-			silences, err = s.silenceService.List(ctx, silence.Filter{
+			silences, err = s.deps.SilenceService.List(ctx, silence.Filter{
 				NamespaceID:       n.NamespaceID,
 				SubscriptionMatch: sub.Match,
 			})
@@ -121,14 +108,14 @@ func (s *DispatchSubscriberService) PrepareMessage(ctx context.Context, n Notifi
 				SilenceIDs:     silenceIDs,
 			})
 
-			s.logger.Info(fmt.Sprintf("notification '%s' of alert ids '%v' is being silenced by labels '%v'", n.ID, n.AlertIDs, silences))
+			s.deps.Logger.Info(fmt.Sprintf("notification '%s' of alert ids '%v' is being silenced by labels '%v'", n.ID, n.AlertIDs, silences))
 			continue
 		}
 
 		// Reliability of silence feature need to be tested more
-		if s.enableSilenceFeature {
+		if s.deps.Cfg.EnableSilenceFeature {
 			// subscription not being silenced by label
-			silences, err = s.silenceService.List(ctx, silence.Filter{
+			silences, err = s.deps.SilenceService.List(ctx, silence.Filter{
 				NamespaceID:    n.NamespaceID,
 				SubscriptionID: sub.ID,
 			})
@@ -171,7 +158,7 @@ func (s *DispatchSubscriberService) PrepareMessage(ctx context.Context, n Notifi
 			message, err := InitMessage(
 				ctx,
 				notifierPlugin,
-				s.templateService,
+				s.deps.TemplateService,
 				n,
 				rcv.Type,
 				rcv.Configuration,
@@ -195,44 +182,44 @@ func (s *DispatchSubscriberService) PrepareMessage(ctx context.Context, n Notifi
 	return messages, notificationLogs, hasSilenced, nil
 }
 
-func (s *DispatchSubscriberService) PrepareMessageV2(ctx context.Context, n Notification) (messages []Message, notificationLogs []log.Notification, hasSilenced bool, err error) {
-	var metricStatus = metricDispatchSubscriberStatusSuccess
+func (s *RouterSubscriberService) PrepareMessageV2(ctx context.Context, n Notification) (messages []Message, notificationLogs []log.Notification, hasSilenced bool, err error) {
+	var metricStatus = metricRouterSubscriberStatusSuccess
 
 	messages = make([]Message, 0)
 
 	defer func() {
-		s.instrumentDispatchSubscription(ctx, metricDispatchSubscriberAttributePrepareMessage, metricStatus, err)
+		s.instrumentDispatchSubscription(ctx, metricRouterSubscriberAttributePrepareMessage, metricStatus, err)
 	}()
 
-	receiversView, err := s.subscriptionService.MatchByLabelsV2(ctx, n.NamespaceID, n.Labels)
+	receiversView, err := s.deps.SubscriptionService.MatchByLabelsV2(ctx, n.NamespaceID, n.Labels)
 	if err != nil {
-		metricStatus = metricDispatchSubscriberStatusMatchError
+		metricStatus = metricRouterSubscriberStatusMatchError
 		return nil, nil, false, err
 	}
 
 	if len(receiversView) == 0 {
-		metricStatus = metricDispatchSubscriberStatusMatchNotFound
+		metricStatus = metricRouterSubscriberStatusMatchNotFound
 		return nil, nil, false, errors.ErrInvalid.WithMsgf("not matching any subscription")
 	}
 
 	for _, rcv := range receiversView {
 		notifierPlugin, err := s.getNotifierPlugin(rcv.Type)
 		if err != nil {
-			metricStatus = metricDispatchSubscriberStatusNotifierError
+			metricStatus = metricRouterSubscriberStatusNotifierError
 			return nil, nil, false, err
 		}
 
 		message, err := InitMessage(
 			ctx,
 			notifierPlugin,
-			s.templateService,
+			s.deps.TemplateService,
 			n,
 			rcv.Type,
 			rcv.Configurations,
 			InitWithExpiryDuration(n.ValidDuration),
 		)
 		if err != nil {
-			metricStatus = metricDispatchSubscriberStatusMessageInitError
+			metricStatus = metricRouterSubscriberStatusMessageInitError
 			return nil, nil, false, err
 		}
 
@@ -249,9 +236,48 @@ func (s *DispatchSubscriberService) PrepareMessageV2(ctx context.Context, n Noti
 	return messages, notificationLogs, hasSilenced, nil
 }
 
-func (s *DispatchSubscriberService) instrumentDispatchSubscription(ctx context.Context, attributeKey, attributeValue string, err error) {
-	s.metricCounterDispatchSubscriber.Add(ctx, 1, metric.WithAttributes(
+func (s *RouterSubscriberService) instrumentDispatchSubscription(ctx context.Context, attributeKey, attributeValue string, err error) {
+	s.metricCounterRouterSubscriber.Add(ctx, 1, metric.WithAttributes(
 		attribute.String(attributeKey, attributeValue),
 		attribute.Bool("operation.success", err == nil),
 	))
+}
+
+func (s *RouterSubscriberService) PrepareMetaMessages(ctx context.Context, n Notification) (metaMessages []MetaMessage, notificationLogs []log.Notification, err error) {
+	var metricStatus = metricRouterSubscriberStatusSuccess
+
+	defer func() {
+		s.instrumentDispatchSubscription(ctx, metricRouterSubscriberAttributePrepareMessage, metricStatus, err)
+	}()
+
+	receiversView, err := s.deps.SubscriptionService.MatchByLabelsV2(ctx, n.NamespaceID, n.Labels)
+	if err != nil {
+		metricStatus = metricRouterSubscriberStatusMatchError
+		return nil, nil, err
+	}
+
+	if len(receiversView) == 0 {
+		metricStatus = metricRouterSubscriberStatusMatchNotFound
+		errMessage := fmt.Sprintf("not matching any subscription for notification: %v", n)
+		nJson, err := json.MarshalIndent(n, "", "  ")
+		if err == nil {
+			errMessage = fmt.Sprintf("not matching any subscription for notification: %s", string(nJson))
+		}
+		return nil, nil, errors.ErrInvalid.WithMsgf(errMessage)
+	}
+
+	for _, rcv := range receiversView {
+		metaMessages = append(metaMessages, n.MetaMessage(rcv))
+
+		// messages = append(messages, message)
+		notificationLogs = append(notificationLogs, log.Notification{
+			NamespaceID:    n.NamespaceID,
+			NotificationID: n.ID,
+			SubscriptionID: rcv.SubscriptionID,
+			ReceiverID:     rcv.ID,
+			AlertIDs:       n.AlertIDs,
+		})
+	}
+
+	return metaMessages, notificationLogs, nil
 }

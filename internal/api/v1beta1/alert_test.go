@@ -7,7 +7,6 @@ import (
 
 	"github.com/goto/salt/log"
 	"github.com/goto/siren/core/alert"
-	"github.com/goto/siren/core/notification"
 	"github.com/goto/siren/internal/api"
 	"github.com/goto/siren/internal/api/mocks"
 	"github.com/goto/siren/internal/api/v1beta1"
@@ -171,9 +170,8 @@ func TestGRPCServer_CreateAlertHistory(t *testing.T) {
 			TriggeredAt:  timenow,
 		}}
 		mockedAlertService.EXPECT().CreateAlerts(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("string"), mock.AnythingOfType("uint64"), mock.AnythingOfType("uint64"), payload).
-			Return(dummyAlerts, 1, nil).Once()
-		mockNotificationService.EXPECT().BuildFromAlerts(mock.AnythingOfType("[]alert.Alert"), mock.AnythingOfType("int"), mock.AnythingOfType("time.Time")).Return([]notification.Notification{}, nil)
-		mockNotificationService.EXPECT().Dispatch(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Notification")).Return("", nil)
+			Return(dummyAlerts, nil).Once()
+		mockNotificationService.EXPECT().Dispatch(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("[]notification.Notification"), mock.AnythingOfType("string")).Return(nil, nil)
 
 		dummyGRPCServer := v1beta1.NewGRPCServer(log.NewNoop(), api.HeadersConfig{}, &api.Deps{AlertService: mockedAlertService, NotificationService: mockNotificationService})
 
@@ -280,9 +278,8 @@ func TestGRPCServer_CreateAlertHistory(t *testing.T) {
 			TriggeredAt:  timenow,
 		}}
 		mockedAlertService.EXPECT().CreateAlerts(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("string"), mock.AnythingOfType("uint64"), mock.AnythingOfType("uint64"), payload).
-			Return(dummyAlerts, 1, nil).Once()
-		mockNotificationService.EXPECT().BuildFromAlerts(mock.AnythingOfType("[]alert.Alert"), mock.AnythingOfType("int"), mock.AnythingOfType("time.Time")).Return([]notification.Notification{}, nil)
-		mockNotificationService.EXPECT().Dispatch(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Notification")).Return("", nil)
+			Return(dummyAlerts, nil).Once()
+		mockNotificationService.EXPECT().Dispatch(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("[]notification.Notification"), mock.AnythingOfType("string")).Return(nil, nil)
 
 		dummyGRPCServer := v1beta1.NewGRPCServer(log.NewNoop(), api.HeadersConfig{}, &api.Deps{AlertService: mockedAlertService, NotificationService: mockNotificationService})
 
@@ -303,7 +300,7 @@ func TestGRPCServer_CreateAlertHistory(t *testing.T) {
 		dummyGRPCServer := v1beta1.NewGRPCServer(log.NewNoop(), api.HeadersConfig{}, &api.Deps{AlertService: mockedAlertService})
 
 		mockedAlertService.EXPECT().CreateAlerts(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("string"), mock.AnythingOfType("uint64"), mock.AnythingOfType("uint64"), payload).
-			Return(nil, 0, errors.New("random error")).Once()
+			Return(nil, errors.New("random error")).Once()
 
 		res, err := dummyGRPCServer.CreateAlerts(context.TODO(), dummyReq)
 		assert.EqualError(t, err, "rpc error: code = Internal desc = some unexpected error occurred")
@@ -462,9 +459,8 @@ func TestGRPCServer_CreateAlertHistory(t *testing.T) {
 		dummyGRPCServer := v1beta1.NewGRPCServer(log.NewNoop(), api.HeadersConfig{}, &api.Deps{AlertService: mockedAlertService, NotificationService: mockNotificationService})
 
 		mockedAlertService.EXPECT().CreateAlerts(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("string"), mock.AnythingOfType("uint64"), mock.AnythingOfType("uint64"), payload).
-			Return(dummyAlerts, 2, nil).Once()
-		mockNotificationService.EXPECT().BuildFromAlerts(mock.AnythingOfType("[]alert.Alert"), mock.AnythingOfType("int"), mock.AnythingOfType("time.Time")).Return([]notification.Notification{}, nil)
-		mockNotificationService.EXPECT().Dispatch(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Notification")).Return("", nil)
+			Return(dummyAlerts, nil).Once()
+		mockNotificationService.EXPECT().Dispatch(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("[]notification.Notification"), mock.AnythingOfType("string")).Return(nil, nil)
 
 		res, err := dummyGRPCServer.CreateAlerts(context.TODO(), dummyReq)
 		assert.Equal(t, 1, len(res.GetAlerts()))

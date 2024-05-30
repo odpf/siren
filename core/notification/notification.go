@@ -4,21 +4,26 @@ import (
 	"context"
 	"time"
 
+	"github.com/goto/siren/core/subscription"
 	"github.com/goto/siren/pkg/errors"
 )
 
 const (
 	ValidDurationRequestKey string = "valid_duration"
 
-	FlowReceiver   string = "receiver"
-	FlowSubscriber string = "subscriber"
+	RouterReceiver   string = "receiver"
+	RouterSubscriber string = "subscriber"
 
 	TypeAlert string = "alert"
 	TypeEvent string = "event"
+
+	DispatchKindBulkNotification   = "bulk_notification"
+	DispatchKindSingleNotification = "single_notification"
 )
 
 type Repository interface {
 	Transactor
+	BulkCreate(context.Context, []Notification) ([]Notification, error)
 	Create(context.Context, Notification) (Notification, error)
 	List(context.Context, Filter) ([]Notification, error)
 }
@@ -59,13 +64,13 @@ func (n *Notification) EnrichID(id string) {
 	n.Data["id"] = id
 }
 
-func (n Notification) Validate(flow string) error {
-	if flow == FlowReceiver {
+func (n Notification) Validate(routerKind string) error {
+	if routerKind == RouterReceiver {
 		if len(n.ReceiverSelectors) != 0 {
 			return nil
 		}
 		return errors.ErrInvalid.WithMsgf("notification type receiver should have receiver_selectors: %v", n)
-	} else if flow == FlowSubscriber {
+	} else if routerKind == RouterSubscriber {
 		if len(n.Labels) != 0 {
 			return nil
 		}
@@ -73,4 +78,19 @@ func (n Notification) Validate(flow string) error {
 	}
 
 	return errors.ErrInvalid.WithMsgf("invalid notification type: %v", n)
+}
+
+func (n Notification) MetaMessage(receiverView subscription.ReceiverView) MetaMessage {
+	return MetaMessage{
+		ReceiverID:       receiverView.ID,
+		SubscriptionIDs:  []uint64{receiverView.SubscriptionID},
+		ReceiverType:     receiverView.Type,
+		NotificationIDs:  []string{n.ID},
+		NotificationType: n.Type,
+		ReceiverConfigs:  receiverView.Configurations,
+		Data:             n.Data,
+		ValidDuration:    n.ValidDuration,
+		Template:         n.Template,
+		Labels:           n.Labels,
+	}
 }

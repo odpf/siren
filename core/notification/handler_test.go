@@ -36,7 +36,7 @@ func TestHandler_MessageHandler(t *testing.T) {
 			name: "return error if post hook transform config is failing and error callback success",
 			messages: []notification.Message{
 				{
-					ReceiverType: testPluginType,
+					ReceiverType: testType,
 				},
 			},
 			setup: func(q *mocks.Queuer, n *mocks.Notifier) {
@@ -49,7 +49,7 @@ func TestHandler_MessageHandler(t *testing.T) {
 			name: "return error if post hook transform config is failing and error callback is failing",
 			messages: []notification.Message{
 				{
-					ReceiverType: testPluginType,
+					ReceiverType: testType,
 				},
 			},
 			setup: func(q *mocks.Queuer, n *mocks.Notifier) {
@@ -62,7 +62,7 @@ func TestHandler_MessageHandler(t *testing.T) {
 			name: "return error if send message return error and error handler queue return error",
 			messages: []notification.Message{
 				{
-					ReceiverType: testPluginType,
+					ReceiverType: testType,
 				},
 			},
 			setup: func(q *mocks.Queuer, n *mocks.Notifier) {
@@ -76,7 +76,7 @@ func TestHandler_MessageHandler(t *testing.T) {
 			name: "return error if send message return error and error handler queue return no error",
 			messages: []notification.Message{
 				{
-					ReceiverType: testPluginType,
+					ReceiverType: testType,
 				},
 			},
 			setup: func(q *mocks.Queuer, n *mocks.Notifier) {
@@ -90,7 +90,7 @@ func TestHandler_MessageHandler(t *testing.T) {
 			name: "return error if send message success and success handler queue return error",
 			messages: []notification.Message{
 				{
-					ReceiverType: testPluginType,
+					ReceiverType: testType,
 				},
 			},
 			setup: func(q *mocks.Queuer, n *mocks.Notifier) {
@@ -104,7 +104,7 @@ func TestHandler_MessageHandler(t *testing.T) {
 			name: "return no error if send message success and success handler queue return no error",
 			messages: []notification.Message{
 				{
-					ReceiverType: testPluginType,
+					ReceiverType: testType,
 				},
 			},
 			setup: func(q *mocks.Queuer, n *mocks.Notifier) {

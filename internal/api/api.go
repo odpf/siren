@@ -16,7 +16,7 @@ import (
 )
 
 type AlertService interface {
-	CreateAlerts(ctx context.Context, providerType string, providerID uint64, namespaceID uint64, body map[string]any) ([]alert.Alert, int, error)
+	CreateAlerts(ctx context.Context, providerType string, providerID uint64, namespaceID uint64, body map[string]any) ([]alert.Alert, error)
 	List(context.Context, alert.Filter) ([]alert.Alert, error)
 }
 
@@ -72,9 +72,8 @@ type TemplateService interface {
 }
 
 type NotificationService interface {
-	Dispatch(ctx context.Context, n notification.Notification) (string, error)
+	Dispatch(context.Context, []notification.Notification, string) ([]string, error)
 	RemoveIdempotencies(ctx context.Context, TTL time.Duration) error
-	BuildFromAlerts(alerts []alert.Alert, firingLen int, createdTime time.Time) ([]notification.Notification, error)
 	CheckIdempotency(ctx context.Context, scope, key string) (string, error)
 	InsertIdempotency(ctx context.Context, scope, key, notificationID string) error
 	ListNotificationMessages(ctx context.Context, notificationID string) ([]notification.Message, error)

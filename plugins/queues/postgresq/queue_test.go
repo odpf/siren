@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"testing"
 	"time"
 
@@ -32,48 +33,48 @@ var (
 	messagesGenerator = func() []notification.Message {
 		return []notification.Message{
 			{
-				ID:             uuid.NewString(),
-				NotificationID: notificationIDs[0],
-				ReceiverType:   receiver.TypeSlack,
-				Configs:        map[string]any{},
-				Status:         notification.MessageStatusEnqueued,
-				Details:        map[string]any{},
-				CreatedAt:      timeNow,
-				UpdatedAt:      timeNow,
+				ID:              uuid.NewString(),
+				NotificationIDs: []string{notificationIDs[0]},
+				ReceiverType:    receiver.TypeSlack,
+				Configs:         map[string]any{},
+				Status:          notification.MessageStatusEnqueued,
+				Details:         map[string]any{},
+				CreatedAt:       timeNow,
+				UpdatedAt:       timeNow,
 			},
 			{
-				ID:             uuid.NewString(),
-				NotificationID: notificationIDs[0],
-				ReceiverType:   receiver.TypeSlack,
-				Configs:        map[string]any{},
-				Status:         notification.MessageStatusEnqueued,
-				Details:        map[string]any{},
-				CreatedAt:      timeNow,
-				UpdatedAt:      timeNow,
+				ID:              uuid.NewString(),
+				NotificationIDs: []string{notificationIDs[0]},
+				ReceiverType:    receiver.TypeSlack,
+				Configs:         map[string]any{},
+				Status:          notification.MessageStatusEnqueued,
+				Details:         map[string]any{},
+				CreatedAt:       timeNow,
+				UpdatedAt:       timeNow,
 			},
 			{
-				ID:             uuid.NewString(),
-				NotificationID: notificationIDs[1],
-				ReceiverType:   receiver.TypeSlack,
-				Status:         notification.MessageStatusEnqueued,
-				CreatedAt:      timeNow,
-				UpdatedAt:      timeNow,
+				ID:              uuid.NewString(),
+				NotificationIDs: []string{notificationIDs[1]},
+				ReceiverType:    receiver.TypeSlack,
+				Status:          notification.MessageStatusEnqueued,
+				CreatedAt:       timeNow,
+				UpdatedAt:       timeNow,
 			},
 			{
-				ID:             uuid.NewString(),
-				NotificationID: notificationIDs[1],
-				ReceiverType:   receiver.TypeSlack,
-				Status:         notification.MessageStatusEnqueued,
-				CreatedAt:      timeNow,
-				UpdatedAt:      timeNow,
+				ID:              uuid.NewString(),
+				NotificationIDs: []string{notificationIDs[1]},
+				ReceiverType:    receiver.TypeSlack,
+				Status:          notification.MessageStatusEnqueued,
+				CreatedAt:       timeNow,
+				UpdatedAt:       timeNow,
 			},
 			{
-				ID:             uuid.NewString(),
-				NotificationID: notificationIDs[2],
-				ReceiverType:   receiver.TypeSlack,
-				Status:         notification.MessageStatusEnqueued,
-				CreatedAt:      timeNow,
-				UpdatedAt:      timeNow,
+				ID:              uuid.NewString(),
+				NotificationIDs: []string{notificationIDs[2]},
+				ReceiverType:    receiver.TypeSlack,
+				Status:          notification.MessageStatusEnqueued,
+				CreatedAt:       timeNow,
+				UpdatedAt:       timeNow,
 			},
 		}
 	}
@@ -311,12 +312,12 @@ func (s *QueueTestSuite) TestListNotificationMessages() {
 
 		expectedMessages := []notification.Message{}
 		for _, msg := range messages {
-			if msg.NotificationID == messages[0].NotificationID {
+			if slices.Contains(msg.NotificationIDs, messages[0].NotificationIDs[0]) {
 				expectedMessages = append(expectedMessages, msg)
 			}
 		}
 
-		result, err := s.q.ListMessages(context.Background(), messages[0].NotificationID)
+		result, err := s.q.ListMessages(context.Background(), messages[0].NotificationIDs[0])
 		s.Require().NoError(err)
 
 		if diff := cmp.Diff(result, expectedMessages,

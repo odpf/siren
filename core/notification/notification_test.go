@@ -23,7 +23,7 @@ func TestNotification_Validate(t *testing.T) {
 		},
 		{
 			name: "should return error if flow receiver but has no receiver_selectors",
-			Flow: notification.FlowReceiver,
+			Flow: notification.RouterReceiver,
 			n: notification.Notification{
 				Labels: map[string]string{
 					"labelkey1": "value1",
@@ -36,7 +36,7 @@ func TestNotification_Validate(t *testing.T) {
 		},
 		{
 			name: "should return nil error if flow receiver and receiver_selectors exist",
-			Flow: notification.FlowReceiver,
+			Flow: notification.RouterReceiver,
 			n: notification.Notification{
 				Labels: map[string]string{
 					"receiver_id": "2",
@@ -50,7 +50,7 @@ func TestNotification_Validate(t *testing.T) {
 		},
 		{
 			name: "should return error if flow subscriber but has no kv labels",
-			Flow: notification.FlowSubscriber,
+			Flow: notification.RouterSubscriber,
 			n: notification.Notification{
 				Data: map[string]any{
 					"varkey1": "value1",
@@ -60,7 +60,7 @@ func TestNotification_Validate(t *testing.T) {
 		},
 		{
 			name: "should return nil error if flow subscriber and has kv labels",
-			Flow: notification.FlowSubscriber,
+			Flow: notification.RouterSubscriber,
 			n: notification.Notification{
 				Labels: map[string]string{
 					"receiver_id": "xxx",

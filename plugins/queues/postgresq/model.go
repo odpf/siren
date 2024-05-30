@@ -9,8 +9,8 @@ import (
 )
 
 type NotificationMessage struct {
-	ID             string `db:"id"`
-	NotificationID string `db:"notification_id"`
+	ID              string         `db:"id"`
+	NotificationIDs pgc.ListString `db:"notification_ids"`
 
 	Status string `db:"status"`
 
@@ -31,7 +31,7 @@ type NotificationMessage struct {
 
 func (nm *NotificationMessage) FromDomain(domainMessage notification.Message) {
 	nm.ID = domainMessage.ID
-	nm.NotificationID = domainMessage.NotificationID
+	nm.NotificationIDs = domainMessage.NotificationIDs
 	nm.Status = string(domainMessage.Status)
 	nm.ReceiverType = domainMessage.ReceiverType
 	nm.Configs = domainMessage.Configs
@@ -60,9 +60,9 @@ func (nm *NotificationMessage) FromDomain(domainMessage notification.Message) {
 
 func (nm *NotificationMessage) ToDomain() notification.Message {
 	return notification.Message{
-		ID:             nm.ID,
-		NotificationID: nm.NotificationID,
-		Status:         notification.MessageStatus(nm.Status),
+		ID:              nm.ID,
+		NotificationIDs: nm.NotificationIDs,
+		Status:          notification.MessageStatus(nm.Status),
 
 		ReceiverType: nm.ReceiverType,
 		Configs:      nm.Configs,

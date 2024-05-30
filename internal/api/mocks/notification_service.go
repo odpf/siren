@@ -3,13 +3,10 @@
 package mocks
 
 import (
-	alert "github.com/goto/siren/core/alert"
-
 	context "context"
 
-	mock "github.com/stretchr/testify/mock"
-
 	notification "github.com/goto/siren/core/notification"
+	mock "github.com/stretchr/testify/mock"
 
 	time "time"
 )
@@ -25,66 +22,6 @@ type NotificationService_Expecter struct {
 
 func (_m *NotificationService) EXPECT() *NotificationService_Expecter {
 	return &NotificationService_Expecter{mock: &_m.Mock}
-}
-
-// BuildFromAlerts provides a mock function with given fields: alerts, firingLen, createdTime
-func (_m *NotificationService) BuildFromAlerts(alerts []alert.Alert, firingLen int, createdTime time.Time) ([]notification.Notification, error) {
-	ret := _m.Called(alerts, firingLen, createdTime)
-
-	if len(ret) == 0 {
-		panic("no return value specified for BuildFromAlerts")
-	}
-
-	var r0 []notification.Notification
-	var r1 error
-	if rf, ok := ret.Get(0).(func([]alert.Alert, int, time.Time) ([]notification.Notification, error)); ok {
-		return rf(alerts, firingLen, createdTime)
-	}
-	if rf, ok := ret.Get(0).(func([]alert.Alert, int, time.Time) []notification.Notification); ok {
-		r0 = rf(alerts, firingLen, createdTime)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]notification.Notification)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func([]alert.Alert, int, time.Time) error); ok {
-		r1 = rf(alerts, firingLen, createdTime)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// NotificationService_BuildFromAlerts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BuildFromAlerts'
-type NotificationService_BuildFromAlerts_Call struct {
-	*mock.Call
-}
-
-// BuildFromAlerts is a helper method to define mock.On call
-//   - alerts []alert.Alert
-//   - firingLen int
-//   - createdTime time.Time
-func (_e *NotificationService_Expecter) BuildFromAlerts(alerts interface{}, firingLen interface{}, createdTime interface{}) *NotificationService_BuildFromAlerts_Call {
-	return &NotificationService_BuildFromAlerts_Call{Call: _e.mock.On("BuildFromAlerts", alerts, firingLen, createdTime)}
-}
-
-func (_c *NotificationService_BuildFromAlerts_Call) Run(run func(alerts []alert.Alert, firingLen int, createdTime time.Time)) *NotificationService_BuildFromAlerts_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]alert.Alert), args[1].(int), args[2].(time.Time))
-	})
-	return _c
-}
-
-func (_c *NotificationService_BuildFromAlerts_Call) Return(_a0 []notification.Notification, _a1 error) *NotificationService_BuildFromAlerts_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *NotificationService_BuildFromAlerts_Call) RunAndReturn(run func([]alert.Alert, int, time.Time) ([]notification.Notification, error)) *NotificationService_BuildFromAlerts_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // CheckIdempotency provides a mock function with given fields: ctx, scope, key
@@ -145,27 +82,29 @@ func (_c *NotificationService_CheckIdempotency_Call) RunAndReturn(run func(conte
 	return _c
 }
 
-// Dispatch provides a mock function with given fields: ctx, n
-func (_m *NotificationService) Dispatch(ctx context.Context, n notification.Notification) (string, error) {
-	ret := _m.Called(ctx, n)
+// Dispatch provides a mock function with given fields: _a0, _a1, _a2
+func (_m *NotificationService) Dispatch(_a0 context.Context, _a1 []notification.Notification, _a2 string) ([]string, error) {
+	ret := _m.Called(_a0, _a1, _a2)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Dispatch")
 	}
 
-	var r0 string
+	var r0 []string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, notification.Notification) (string, error)); ok {
-		return rf(ctx, n)
+	if rf, ok := ret.Get(0).(func(context.Context, []notification.Notification, string) ([]string, error)); ok {
+		return rf(_a0, _a1, _a2)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, notification.Notification) string); ok {
-		r0 = rf(ctx, n)
+	if rf, ok := ret.Get(0).(func(context.Context, []notification.Notification, string) []string); ok {
+		r0 = rf(_a0, _a1, _a2)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, notification.Notification) error); ok {
-		r1 = rf(ctx, n)
+	if rf, ok := ret.Get(1).(func(context.Context, []notification.Notification, string) error); ok {
+		r1 = rf(_a0, _a1, _a2)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -179,25 +118,26 @@ type NotificationService_Dispatch_Call struct {
 }
 
 // Dispatch is a helper method to define mock.On call
-//   - ctx context.Context
-//   - n notification.Notification
-func (_e *NotificationService_Expecter) Dispatch(ctx interface{}, n interface{}) *NotificationService_Dispatch_Call {
-	return &NotificationService_Dispatch_Call{Call: _e.mock.On("Dispatch", ctx, n)}
+//   - _a0 context.Context
+//   - _a1 []notification.Notification
+//   - _a2 string
+func (_e *NotificationService_Expecter) Dispatch(_a0 interface{}, _a1 interface{}, _a2 interface{}) *NotificationService_Dispatch_Call {
+	return &NotificationService_Dispatch_Call{Call: _e.mock.On("Dispatch", _a0, _a1, _a2)}
 }
 
-func (_c *NotificationService_Dispatch_Call) Run(run func(ctx context.Context, n notification.Notification)) *NotificationService_Dispatch_Call {
+func (_c *NotificationService_Dispatch_Call) Run(run func(_a0 context.Context, _a1 []notification.Notification, _a2 string)) *NotificationService_Dispatch_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(notification.Notification))
+		run(args[0].(context.Context), args[1].([]notification.Notification), args[2].(string))
 	})
 	return _c
 }
 
-func (_c *NotificationService_Dispatch_Call) Return(_a0 string, _a1 error) *NotificationService_Dispatch_Call {
+func (_c *NotificationService_Dispatch_Call) Return(_a0 []string, _a1 error) *NotificationService_Dispatch_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *NotificationService_Dispatch_Call) RunAndReturn(run func(context.Context, notification.Notification) (string, error)) *NotificationService_Dispatch_Call {
+func (_c *NotificationService_Dispatch_Call) RunAndReturn(run func(context.Context, []notification.Notification, string) ([]string, error)) *NotificationService_Dispatch_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -114,6 +114,10 @@ func (c *Client) NamedExecContext(ctx context.Context, query string, arg interfa
 	return sqlx.NamedExecContext(ctx, c.GetDB(ctx), query, arg)
 }
 
+func (c *Client) NamedQueryContext(ctx context.Context, query string, arg interface{}) (*sqlx.Rows, error) {
+	return sqlx.NamedQueryContext(ctx, c.GetDB(ctx), query, arg)
+}
+
 func (c *Client) WithTransaction(ctx context.Context, opts *sql.TxOptions) context.Context {
 	var (
 		tx  *sqlx.Tx

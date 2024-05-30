@@ -32,7 +32,7 @@ func TestGRPCServer_PostNotification(t *testing.T) {
 			idempotencyKey: "test",
 			setup: func(ns *mocks.NotificationService) {
 				ns.EXPECT().CheckIdempotency(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("", errors.ErrNotFound)
-				ns.EXPECT().Dispatch(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("notification.Notification")).Return("", errors.ErrInvalid)
+				ns.EXPECT().Dispatch(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("[]notification.Notification"), mock.AnythingOfType("string")).Return(nil, errors.ErrInvalid)
 			},
 			errString: "rpc error: code = InvalidArgument desc = request is not valid",
 		},
@@ -41,7 +41,7 @@ func TestGRPCServer_PostNotification(t *testing.T) {
 			idempotencyKey: "test",
 			setup: func(ns *mocks.NotificationService) {
 				ns.EXPECT().CheckIdempotency(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("", errors.ErrNotFound)
-				ns.EXPECT().Dispatch(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("notification.Notification")).Return("", errors.New("some error"))
+				ns.EXPECT().Dispatch(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("[]notification.Notification"), mock.AnythingOfType("string")).Return(nil, errors.New("some error"))
 			},
 			errString: "rpc error: code = Internal desc = some unexpected error occurred",
 		},
@@ -65,7 +65,7 @@ func TestGRPCServer_PostNotification(t *testing.T) {
 			idempotencyKey: "test",
 			setup: func(ns *mocks.NotificationService) {
 				ns.EXPECT().CheckIdempotency(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("", errors.ErrNotFound)
-				ns.EXPECT().Dispatch(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("notification.Notification")).Return(notificationID, nil)
+				ns.EXPECT().Dispatch(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("[]notification.Notification"), mock.AnythingOfType("string")).Return([]string{notificationID}, nil)
 				ns.EXPECT().InsertIdempotency(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(errors.New("some error"))
 			},
 			errString: "rpc error: code = Internal desc = some unexpected error occurred",
@@ -75,7 +75,7 @@ func TestGRPCServer_PostNotification(t *testing.T) {
 			idempotencyKey: "test",
 			setup: func(ns *mocks.NotificationService) {
 				ns.EXPECT().CheckIdempotency(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("", errors.ErrNotFound)
-				ns.EXPECT().Dispatch(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("notification.Notification")).Return(notificationID, nil)
+				ns.EXPECT().Dispatch(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("[]notification.Notification"), mock.AnythingOfType("string")).Return([]string{notificationID}, nil)
 				ns.EXPECT().InsertIdempotency(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil)
 			},
 		},

@@ -9,4 +9,6 @@ var (
 	SampleRuleTemplate string
 	//go:embed template-message-sample-1.yaml
 	SampleMessageTemplate string
+	//go:embed template-bulk-message-template.yaml
+	SampleBulkMessageTemplate string
 )
