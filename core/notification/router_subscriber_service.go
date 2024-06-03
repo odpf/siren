@@ -2,7 +2,6 @@ package notification
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/goto/siren/core/log"
@@ -257,18 +256,12 @@ func (s *RouterSubscriberService) PrepareMetaMessages(ctx context.Context, n Not
 
 	if len(receiversView) == 0 {
 		metricStatus = metricRouterSubscriberStatusMatchNotFound
-		errMessage := fmt.Sprintf("not matching any subscription for notification: %v", n)
-		nJson, err := json.MarshalIndent(n, "", "  ")
-		if err == nil {
-			errMessage = fmt.Sprintf("not matching any subscription for notification: %s", string(nJson))
-		}
-		return nil, nil, errors.ErrInvalid.WithMsgf(errMessage)
+		return nil, nil, ErrRouteSubscriberNoMatchFound
 	}
 
 	for _, rcv := range receiversView {
 		metaMessages = append(metaMessages, n.MetaMessage(rcv))
 
-		// messages = append(messages, message)
 		notificationLogs = append(notificationLogs, log.Notification{
 			NamespaceID:    n.NamespaceID,
 			NotificationID: n.ID,

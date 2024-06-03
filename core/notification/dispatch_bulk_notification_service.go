@@ -2,6 +2,7 @@ package notification
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/goto/siren/core/log"
@@ -62,6 +63,15 @@ func (s *DispatchBulkNotificationService) prepareMetaMessages(ctx context.Contex
 
 		generatedMetaMessages, generatedNotificationLogs, err := router.PrepareMetaMessages(ctx, n)
 		if err != nil {
+			if errors.Is(err, ErrRouteSubscriberNoMatchFound) {
+				errMessage := fmt.Sprintf("not matching any subscription for notification: %v", n)
+				nJson, err := json.MarshalIndent(n, "", "  ")
+				if err == nil {
+					errMessage = fmt.Sprintf("not matching any subscription for notification: %s", string(nJson))
+				}
+				s.deps.Logger.Warn(errMessage)
+				continue
+			}
 			return nil, nil, err
 		}
 
