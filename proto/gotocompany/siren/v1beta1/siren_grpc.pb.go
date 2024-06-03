@@ -38,6 +38,10 @@ type SirenServiceClient interface {
 	CreateSubscription(ctx context.Context, in *CreateSubscriptionRequest, opts ...grpc.CallOption) (*CreateSubscriptionResponse, error)
 	GetSubscription(ctx context.Context, in *GetSubscriptionRequest, opts ...grpc.CallOption) (*GetSubscriptionResponse, error)
 	UpdateSubscription(ctx context.Context, in *UpdateSubscriptionRequest, opts ...grpc.CallOption) (*UpdateSubscriptionResponse, error)
+	ListSubscriptionReceivers(ctx context.Context, in *ListSubscriptionReceiversRequest, opts ...grpc.CallOption) (*ListSubscriptionReceiversResponse, error)
+	AddSubscriptionReceiver(ctx context.Context, in *AddSubscriptionReceiverRequest, opts ...grpc.CallOption) (*AddSubscriptionReceiverResponse, error)
+	UpdateSubscriptionReceiver(ctx context.Context, in *UpdateSubscriptionReceiverRequest, opts ...grpc.CallOption) (*UpdateSubscriptionReceiverResponse, error)
+	DeleteSubscriptionReceiver(ctx context.Context, in *DeleteSubscriptionReceiverRequest, opts ...grpc.CallOption) (*DeleteSubscriptionReceiverResponse, error)
 	DeleteSubscription(ctx context.Context, in *DeleteSubscriptionRequest, opts ...grpc.CallOption) (*DeleteSubscriptionResponse, error)
 	ListReceivers(ctx context.Context, in *ListReceiversRequest, opts ...grpc.CallOption) (*ListReceiversResponse, error)
 	CreateReceiver(ctx context.Context, in *CreateReceiverRequest, opts ...grpc.CallOption) (*CreateReceiverResponse, error)
@@ -202,6 +206,42 @@ func (c *sirenServiceClient) GetSubscription(ctx context.Context, in *GetSubscri
 func (c *sirenServiceClient) UpdateSubscription(ctx context.Context, in *UpdateSubscriptionRequest, opts ...grpc.CallOption) (*UpdateSubscriptionResponse, error) {
 	out := new(UpdateSubscriptionResponse)
 	err := c.cc.Invoke(ctx, "/gotocompany.siren.v1beta1.SirenService/UpdateSubscription", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sirenServiceClient) ListSubscriptionReceivers(ctx context.Context, in *ListSubscriptionReceiversRequest, opts ...grpc.CallOption) (*ListSubscriptionReceiversResponse, error) {
+	out := new(ListSubscriptionReceiversResponse)
+	err := c.cc.Invoke(ctx, "/gotocompany.siren.v1beta1.SirenService/ListSubscriptionReceivers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sirenServiceClient) AddSubscriptionReceiver(ctx context.Context, in *AddSubscriptionReceiverRequest, opts ...grpc.CallOption) (*AddSubscriptionReceiverResponse, error) {
+	out := new(AddSubscriptionReceiverResponse)
+	err := c.cc.Invoke(ctx, "/gotocompany.siren.v1beta1.SirenService/AddSubscriptionReceiver", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sirenServiceClient) UpdateSubscriptionReceiver(ctx context.Context, in *UpdateSubscriptionReceiverRequest, opts ...grpc.CallOption) (*UpdateSubscriptionReceiverResponse, error) {
+	out := new(UpdateSubscriptionReceiverResponse)
+	err := c.cc.Invoke(ctx, "/gotocompany.siren.v1beta1.SirenService/UpdateSubscriptionReceiver", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sirenServiceClient) DeleteSubscriptionReceiver(ctx context.Context, in *DeleteSubscriptionReceiverRequest, opts ...grpc.CallOption) (*DeleteSubscriptionReceiverResponse, error) {
+	out := new(DeleteSubscriptionReceiverResponse)
+	err := c.cc.Invoke(ctx, "/gotocompany.siren.v1beta1.SirenService/DeleteSubscriptionReceiver", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -444,6 +484,10 @@ type SirenServiceServer interface {
 	CreateSubscription(context.Context, *CreateSubscriptionRequest) (*CreateSubscriptionResponse, error)
 	GetSubscription(context.Context, *GetSubscriptionRequest) (*GetSubscriptionResponse, error)
 	UpdateSubscription(context.Context, *UpdateSubscriptionRequest) (*UpdateSubscriptionResponse, error)
+	ListSubscriptionReceivers(context.Context, *ListSubscriptionReceiversRequest) (*ListSubscriptionReceiversResponse, error)
+	AddSubscriptionReceiver(context.Context, *AddSubscriptionReceiverRequest) (*AddSubscriptionReceiverResponse, error)
+	UpdateSubscriptionReceiver(context.Context, *UpdateSubscriptionReceiverRequest) (*UpdateSubscriptionReceiverResponse, error)
+	DeleteSubscriptionReceiver(context.Context, *DeleteSubscriptionReceiverRequest) (*DeleteSubscriptionReceiverResponse, error)
 	DeleteSubscription(context.Context, *DeleteSubscriptionRequest) (*DeleteSubscriptionResponse, error)
 	ListReceivers(context.Context, *ListReceiversRequest) (*ListReceiversResponse, error)
 	CreateReceiver(context.Context, *CreateReceiverRequest) (*CreateReceiverResponse, error)
@@ -519,6 +563,18 @@ func (UnimplementedSirenServiceServer) GetSubscription(context.Context, *GetSubs
 }
 func (UnimplementedSirenServiceServer) UpdateSubscription(context.Context, *UpdateSubscriptionRequest) (*UpdateSubscriptionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSubscription not implemented")
+}
+func (UnimplementedSirenServiceServer) ListSubscriptionReceivers(context.Context, *ListSubscriptionReceiversRequest) (*ListSubscriptionReceiversResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSubscriptionReceivers not implemented")
+}
+func (UnimplementedSirenServiceServer) AddSubscriptionReceiver(context.Context, *AddSubscriptionReceiverRequest) (*AddSubscriptionReceiverResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddSubscriptionReceiver not implemented")
+}
+func (UnimplementedSirenServiceServer) UpdateSubscriptionReceiver(context.Context, *UpdateSubscriptionReceiverRequest) (*UpdateSubscriptionReceiverResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSubscriptionReceiver not implemented")
+}
+func (UnimplementedSirenServiceServer) DeleteSubscriptionReceiver(context.Context, *DeleteSubscriptionReceiverRequest) (*DeleteSubscriptionReceiverResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSubscriptionReceiver not implemented")
 }
 func (UnimplementedSirenServiceServer) DeleteSubscription(context.Context, *DeleteSubscriptionRequest) (*DeleteSubscriptionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSubscription not implemented")
@@ -871,6 +927,78 @@ func _SirenService_UpdateSubscription_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SirenServiceServer).UpdateSubscription(ctx, req.(*UpdateSubscriptionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SirenService_ListSubscriptionReceivers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSubscriptionReceiversRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SirenServiceServer).ListSubscriptionReceivers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gotocompany.siren.v1beta1.SirenService/ListSubscriptionReceivers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SirenServiceServer).ListSubscriptionReceivers(ctx, req.(*ListSubscriptionReceiversRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SirenService_AddSubscriptionReceiver_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddSubscriptionReceiverRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SirenServiceServer).AddSubscriptionReceiver(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gotocompany.siren.v1beta1.SirenService/AddSubscriptionReceiver",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SirenServiceServer).AddSubscriptionReceiver(ctx, req.(*AddSubscriptionReceiverRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SirenService_UpdateSubscriptionReceiver_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSubscriptionReceiverRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SirenServiceServer).UpdateSubscriptionReceiver(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gotocompany.siren.v1beta1.SirenService/UpdateSubscriptionReceiver",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SirenServiceServer).UpdateSubscriptionReceiver(ctx, req.(*UpdateSubscriptionReceiverRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SirenService_DeleteSubscriptionReceiver_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSubscriptionReceiverRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SirenServiceServer).DeleteSubscriptionReceiver(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gotocompany.siren.v1beta1.SirenService/DeleteSubscriptionReceiver",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SirenServiceServer).DeleteSubscriptionReceiver(ctx, req.(*DeleteSubscriptionReceiverRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1373,6 +1501,22 @@ var SirenService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateSubscription",
 			Handler:    _SirenService_UpdateSubscription_Handler,
+		},
+		{
+			MethodName: "ListSubscriptionReceivers",
+			Handler:    _SirenService_ListSubscriptionReceivers_Handler,
+		},
+		{
+			MethodName: "AddSubscriptionReceiver",
+			Handler:    _SirenService_AddSubscriptionReceiver_Handler,
+		},
+		{
+			MethodName: "UpdateSubscriptionReceiver",
+			Handler:    _SirenService_UpdateSubscriptionReceiver_Handler,
+		},
+		{
+			MethodName: "DeleteSubscriptionReceiver",
+			Handler:    _SirenService_DeleteSubscriptionReceiver_Handler,
 		},
 		{
 			MethodName: "DeleteSubscription",

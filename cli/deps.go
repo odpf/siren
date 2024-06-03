@@ -201,14 +201,15 @@ func InitDeps(
 	)
 
 	return &api.Deps{
-		TemplateService:     templateService,
-		RuleService:         ruleService,
-		AlertService:        alertService,
-		ProviderService:     providerService,
-		NamespaceService:    namespaceService,
-		ReceiverService:     receiverService,
-		SubscriptionService: subscriptionService,
-		NotificationService: notificationService,
-		SilenceService:      silenceService,
+		TemplateService:             templateService,
+		RuleService:                 ruleService,
+		AlertService:                alertService,
+		ProviderService:             providerService,
+		NamespaceService:            namespaceService,
+		ReceiverService:             receiverService,
+		SubscriptionService:         subscriptionService,
+		SubscriptionReceiverService: subscriptionReceiverService,
+		NotificationService:         notificationService,
+		SilenceService:              silenceService,
 	}, pgClient, notifierRegistry, providersPluginManager, nil
 }

@@ -8,14 +8,18 @@ import (
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/structure"
 	"github.com/mitchellh/hashstructure/v2"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/exp/maps"
 )
 
 // DispatchBulkNotificationService only supports subscriber routing and not supporting direct receiver routing
 type DispatchBulkNotificationService struct {
-	deps            Deps
-	notifierPlugins map[string]Notifier
-	routerMap       map[string]Router
+	deps                           Deps
+	notifierPlugins                map[string]Notifier
+	routerMap                      map[string]Router
+	metricGaugeNumBulkNotification metric.Int64Gauge
 }
 
 func NewDispatchBulkNotificationService(
@@ -23,10 +27,17 @@ func NewDispatchBulkNotificationService(
 	notifierPlugins map[string]Notifier,
 	routerMap map[string]Router,
 ) *DispatchBulkNotificationService {
+	metricGaugeNumBulkNotification, err := otel.Meter("github.com/goto/siren/core/notification").
+		Int64Gauge("siren.notification.bulk.notification_number")
+	if err != nil {
+		otel.Handle(err)
+	}
+
 	return &DispatchBulkNotificationService{
-		deps:            deps,
-		notifierPlugins: notifierPlugins,
-		routerMap:       routerMap,
+		deps:                           deps,
+		notifierPlugins:                notifierPlugins,
+		routerMap:                      routerMap,
+		metricGaugeNumBulkNotification: metricGaugeNumBulkNotification,
 	}
 }
 
@@ -38,11 +49,7 @@ func (s *DispatchBulkNotificationService) getRouter(notificationRouterKind strin
 	return selectedRouter, nil
 }
 
-func (s *DispatchBulkNotificationService) prepareMetaMessages(ctx context.Context, ns []Notification) ([]MetaMessage, []log.Notification, error) {
-	var (
-		metaMessages     []MetaMessage
-		notificationLogs []log.Notification
-	)
+func (s *DispatchBulkNotificationService) prepareMetaMessages(ctx context.Context, ns []Notification) (metaMessages []MetaMessage, notificationLogs []log.Notification, err error) {
 	for _, n := range ns {
 		if err := n.Validate(RouterSubscriber); err != nil {
 			return nil, nil, err
@@ -65,9 +72,12 @@ func (s *DispatchBulkNotificationService) prepareMetaMessages(ctx context.Contex
 	return metaMessages, notificationLogs, nil
 }
 
-func (s *DispatchBulkNotificationService) Dispatch(ctx context.Context, ns []Notification) ([]string, error) {
+func (s *DispatchBulkNotificationService) Dispatch(ctx context.Context, ns []Notification) (notificationIDs []string, err error) {
+	defer func() {
+		s.instrumentNumberBulkNotification(ctx, len(ns), err)
+	}()
+
 	var (
-		notificationIDs  []string
 		metaMessages     []MetaMessage
 		notificationLogs []log.Notification
 	)
@@ -183,4 +193,10 @@ func MergeMetaMessage(from MetaMessage, to MetaMessage) MetaMessage {
 	output.NotificationIDs = append(output.NotificationIDs, from.NotificationIDs...)
 	output.SubscriptionIDs = append(output.SubscriptionIDs, from.SubscriptionIDs...)
 	return output
+}
+
+func (s *DispatchBulkNotificationService) instrumentNumberBulkNotification(ctx context.Context, num int, err error) {
+	s.metricGaugeNumBulkNotification.Record(ctx, int64(num), metric.WithAttributes(
+		attribute.Bool("success", err == nil),
+	))
 }

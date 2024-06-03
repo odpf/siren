@@ -43,7 +43,7 @@ func jobCmd(cmdxConfig *cmdx.Config) *cobra.Command {
 	return cmd
 }
 
-func jobRunCommand(cmdxConfig *cmdx.Config) *cobra.Command {
+func jobRunCommand(_ *cmdx.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Trigger a job",

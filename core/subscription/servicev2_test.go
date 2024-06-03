@@ -2,6 +2,7 @@ package subscription_test
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -943,6 +944,18 @@ func TestClassifyReceivers(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			tu, td := subscription.ClassifyReceivers(testCase.NewRelations, testCase.ExistingRelations)
+			sort.Slice(tu, func(i, j int) bool {
+				return tu[i].ReceiverID < tu[j].ReceiverID
+			})
+			sort.Slice(testCase.ExpectedToUpsert, func(i, j int) bool {
+				return testCase.ExpectedToUpsert[i].ReceiverID < testCase.ExpectedToUpsert[j].ReceiverID
+			})
+			sort.Slice(td, func(i, j int) bool {
+				return td[i].ReceiverID < td[j].ReceiverID
+			})
+			sort.Slice(testCase.ExistingRelations, func(i, j int) bool {
+				return testCase.ExistingRelations[i].ReceiverID < testCase.ExistingRelations[j].ReceiverID
+			})
 			if diff := cmp.Diff(tu, testCase.ExpectedToUpsert,
 				cmpopts.IgnoreFields(subscriptionreceiver.Relation{}, "ID")); diff != "" {
 				t.Fatalf("got diff to update %+v", diff)

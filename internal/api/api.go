@@ -12,6 +12,7 @@ import (
 	"github.com/goto/siren/core/rule"
 	"github.com/goto/siren/core/silence"
 	"github.com/goto/siren/core/subscription"
+	"github.com/goto/siren/core/subscriptionreceiver"
 	"github.com/goto/siren/core/template"
 )
 
@@ -63,6 +64,13 @@ type SubscriptionService interface {
 	DeleteV2(context.Context, uint64) error
 }
 
+type SubscriptionReceiverService interface {
+	List(ctx context.Context, flt subscriptionreceiver.Filter) ([]subscriptionreceiver.Relation, error)
+	BulkUpsert(ctx context.Context, rels []subscriptionreceiver.Relation) error
+	Update(ctx context.Context, rel *subscriptionreceiver.Relation) error
+	BulkSoftDelete(ctx context.Context, flt subscriptionreceiver.DeleteFilter) error
+}
+
 type TemplateService interface {
 	Upsert(context.Context, *template.Template) error
 	List(context.Context, template.Filter) ([]template.Template, error)
@@ -88,13 +96,14 @@ type SilenceService interface {
 }
 
 type Deps struct {
-	TemplateService     TemplateService
-	RuleService         RuleService
-	AlertService        AlertService
-	ProviderService     ProviderService
-	NamespaceService    NamespaceService
-	ReceiverService     ReceiverService
-	SubscriptionService SubscriptionService
-	NotificationService NotificationService
-	SilenceService      SilenceService
+	TemplateService             TemplateService
+	RuleService                 RuleService
+	AlertService                AlertService
+	ProviderService             ProviderService
+	NamespaceService            NamespaceService
+	ReceiverService             ReceiverService
+	SubscriptionService         SubscriptionService
+	SubscriptionReceiverService SubscriptionReceiverService
+	NotificationService         NotificationService
+	SilenceService              SilenceService
 }

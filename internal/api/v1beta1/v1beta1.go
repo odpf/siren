@@ -36,15 +36,16 @@ type GRPCServer struct {
 	cfg     Config
 	headers api.HeadersConfig
 	sirenv1beta1.UnimplementedSirenServiceServer
-	templateService     api.TemplateService
-	ruleService         api.RuleService
-	alertService        api.AlertService
-	providerService     api.ProviderService
-	namespaceService    api.NamespaceService
-	receiverService     api.ReceiverService
-	subscriptionService api.SubscriptionService
-	notificationService api.NotificationService
-	silenceService      api.SilenceService
+	templateService             api.TemplateService
+	ruleService                 api.RuleService
+	alertService                api.AlertService
+	providerService             api.ProviderService
+	namespaceService            api.NamespaceService
+	receiverService             api.ReceiverService
+	subscriptionService         api.SubscriptionService
+	subscriptionReceiverService api.SubscriptionReceiverService
+	notificationService         api.NotificationService
+	silenceService              api.SilenceService
 }
 
 func NewGRPCServer(
@@ -54,17 +55,18 @@ func NewGRPCServer(
 	opts ...GRPCServerOption) *GRPCServer {
 
 	s := &GRPCServer{
-		headers:             headers,
-		logger:              logger,
-		templateService:     apiDeps.TemplateService,
-		ruleService:         apiDeps.RuleService,
-		alertService:        apiDeps.AlertService,
-		providerService:     apiDeps.ProviderService,
-		namespaceService:    apiDeps.NamespaceService,
-		receiverService:     apiDeps.ReceiverService,
-		subscriptionService: apiDeps.SubscriptionService,
-		notificationService: apiDeps.NotificationService,
-		silenceService:      apiDeps.SilenceService,
+		headers:                     headers,
+		logger:                      logger,
+		templateService:             apiDeps.TemplateService,
+		ruleService:                 apiDeps.RuleService,
+		alertService:                apiDeps.AlertService,
+		providerService:             apiDeps.ProviderService,
+		namespaceService:            apiDeps.NamespaceService,
+		receiverService:             apiDeps.ReceiverService,
+		subscriptionService:         apiDeps.SubscriptionService,
+		subscriptionReceiverService: apiDeps.SubscriptionReceiverService,
+		notificationService:         apiDeps.NotificationService,
+		silenceService:              apiDeps.SilenceService,
 	}
 
 	for _, opt := range opts {

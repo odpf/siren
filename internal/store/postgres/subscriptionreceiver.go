@@ -3,14 +3,17 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/goto/siren/core/subscription"
 	"github.com/goto/siren/core/subscriptionreceiver"
 	"github.com/goto/siren/internal/store/model"
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/pgc"
+	"github.com/goto/siren/pkg/structure"
 	"github.com/lib/pq"
 	"go.nhat.io/otelsql"
 	"go.opentelemetry.io/otel/attribute"
@@ -30,6 +33,12 @@ ON CONFLICT
 	(subscription_id, receiver_id)
 DO UPDATE SET
 	labels = EXCLUDED.labels, updated_at = now(), deleted_at = NULL
+RETURNING *
+`
+
+const subscriptionReceiverUpdateQuery = `
+UPDATE subscriptions_receivers SET labels=$3, updated_at=now()
+WHERE subscription_id = $1 AND receiver_id = $2 AND deleted_at IS NULL
 RETURNING *
 `
 
@@ -113,6 +122,16 @@ func (s *SubscriptionReceiverRepository) List(ctx context.Context, flt subscript
 	if flt.ReceiverID != 0 {
 		queryBuilder = queryBuilder.Where("receiver_id = ?", flt.ReceiverID)
 	}
+	// given map of string from input [lf], look for rows that [lf] exist in labels column in DB
+	if len(flt.Labels) != 0 {
+		labelsJSON, err := json.Marshal(flt.Labels)
+		if err != nil {
+			return nil, errors.ErrInvalid.WithMsgf("problem marshalling labels json to string with err: %s", err.Error())
+		}
+		conditionedJSON := structure.ConditionJSONString(json.RawMessage(labelsJSON))
+		queryBuilder = queryBuilder.Where(fmt.Sprintf("labels @> '%s'::jsonb", conditionedJSON))
+	}
+
 	if flt.Deleted {
 		queryBuilder = queryBuilder.Where("deleted_at IS NOT NULL")
 	} else {
@@ -197,6 +216,53 @@ func (r *SubscriptionReceiverRepository) BulkUpsert(ctx context.Context, subscri
 	return nil
 }
 
+func (r *SubscriptionReceiverRepository) Update(ctx context.Context, rel *subscriptionreceiver.Relation) error {
+	if rel == nil {
+		return errors.New("subscription receiver relation is nil")
+	}
+
+	srModel := new(model.SubscriptionReceiverRelation)
+	srModel.FromDomain(*rel)
+
+	var newModel model.SubscriptionReceiverRelation
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Update"),
+			attribute.String("db.sql.table", "subscriptions_receivers"),
+		}...,
+	)
+
+	if err := r.client.QueryRowxContext(ctx, subscriptionReceiverUpdateQuery,
+		srModel.SubscriptionID,
+		srModel.ReceiverID,
+		srModel.Labels,
+	).StructScan(&newModel); err != nil {
+		err = pgc.CheckError(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return subscriptionreceiver.NotFoundError{
+				SubscriptionID: srModel.SubscriptionID,
+				ReceiverID:     srModel.ReceiverID,
+			}
+		}
+		if errors.Is(err, pgc.ErrDuplicateKey) {
+			return subscription.ErrDuplicate
+		}
+		if errors.Is(err, pgc.ErrForeignKeyViolation) {
+			return subscriptionreceiver.NotFoundError{
+				SubscriptionID: srModel.SubscriptionID,
+				ReceiverID:     srModel.ReceiverID,
+			}
+		}
+		return err
+	}
+
+	*rel = *newModel.ToDomain()
+
+	return nil
+}
+
 func (r *SubscriptionReceiverRepository) BulkSoftDelete(ctx context.Context, flt subscriptionreceiver.DeleteFilter) error {
 	if len(flt.Pair) > 0 && flt.SubscriptionID != 0 {
 		return errors.New("use either pairs of subscription id and receiver id or a single subscription id")
@@ -241,7 +307,9 @@ func (r *SubscriptionReceiverRepository) BulkSoftDelete(ctx context.Context, flt
 		return err
 	}
 	if rowsAffected == 0 {
-		return errors.New("no rows affected when soft deleting subscription receivers")
+		return subscriptionreceiver.NotFoundError{
+			ErrStr: "no data found",
+		}
 	}
 
 	return nil

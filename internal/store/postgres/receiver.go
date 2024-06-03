@@ -12,6 +12,7 @@ import (
 	"github.com/goto/siren/internal/store/model"
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/pgc"
+	"github.com/goto/siren/pkg/structure"
 	"go.nhat.io/otelsql"
 	"go.opentelemetry.io/otel/attribute"
 )
@@ -91,9 +92,11 @@ func (r ReceiverRepository) List(ctx context.Context, flt receiver.Filter) ([]re
 			if err != nil {
 				return nil, errors.ErrInvalid.WithMsgf("problem marshalling labels %v json to string with err: %s", labels, err.Error())
 			}
+
+			conditionedJSON := structure.ConditionJSONString(json.RawMessage(labelsJSON))
 			matchLabelsExpression = append(
 				matchLabelsExpression,
-				sq.Expr(fmt.Sprintf("r.labels @> '%s'::jsonb", string(json.RawMessage(labelsJSON)))),
+				sq.Expr(fmt.Sprintf("r.labels @> '%s'::jsonb", conditionedJSON)),
 			)
 		}
 		queryBuilder = queryBuilder.Where(matchLabelsExpression)

@@ -38,6 +38,7 @@ func subscriptionsCmd(cmdxConfig *cmdx.Config) *cobra.Command {
 		createSubscriptionCmd(cmdxConfig),
 		updateSubscriptionCmd(cmdxConfig),
 		deleteSubscriptionCmd(cmdxConfig),
+		subscriptionsReceiversCmd(cmdxConfig),
 	)
 
 	return cmd

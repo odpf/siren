@@ -755,6 +755,11 @@ paths:
           in: query
           required: false
           type: string
+        - name: receiver_id
+          in: query
+          required: false
+          type: string
+          format: uint64
       tags:
         - Subscription
     post:
@@ -860,6 +865,121 @@ paths:
                 type: object
               updated_by:
                 type: string
+      tags:
+        - Subscription
+  /v1beta1/subscriptions/{subscription_id}/receivers:
+    get:
+      summary: List receivers of a subscription
+      operationId: SirenService_ListSubscriptionReceivers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListSubscriptionReceiversResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          type: string
+          format: uint64
+      tags:
+        - Subscription
+    post:
+      summary: Add a receiver of a subscription
+      operationId: SirenService_AddSubscriptionReceiver
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/AddSubscriptionReceiverResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          type: string
+          format: uint64
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              receiver_id:
+                type: string
+                format: uint64
+              labels:
+                type: object
+                additionalProperties:
+                  type: string
+      tags:
+        - Subscription
+  /v1beta1/subscriptions/{subscription_id}/receivers/{receiver_id}:
+    delete:
+      summary: Delete a receiver of a subscription
+      operationId: SirenService_DeleteSubscriptionReceiver
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/DeleteSubscriptionReceiverResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          type: string
+          format: uint64
+        - name: receiver_id
+          in: path
+          required: true
+          type: string
+          format: uint64
+      tags:
+        - Subscription
+    put:
+      summary: Update a receiver of a subscription
+      operationId: SirenService_UpdateSubscriptionReceiver
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpdateSubscriptionReceiverResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          type: string
+          format: uint64
+        - name: receiver_id
+          in: path
+          required: true
+          type: string
+          format: uint64
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              labels:
+                type: object
+                additionalProperties:
+                  type: string
       tags:
         - Subscription
   /v1beta1/templates:
@@ -972,6 +1092,19 @@ paths:
       tags:
         - Template
 definitions:
+  AddSubscriptionReceiverResponse:
+    type: object
+    properties:
+      subscription_id:
+        type: string
+        format: uint64
+      receiver_id:
+        type: string
+        format: uint64
+      labels:
+        type: object
+        additionalProperties:
+          type: string
   Alert:
     type: object
     properties:
@@ -1167,6 +1300,8 @@ definitions:
     type: object
   DeleteReceiverResponse:
     type: object
+  DeleteSubscriptionReceiverResponse:
+    type: object
   DeleteSubscriptionResponse:
     type: object
   DeleteTemplateResponse:
@@ -1267,6 +1402,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/Silence'
+  ListSubscriptionReceiversResponse:
+    type: object
+    properties:
+      subscription_receivers:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/SubscriptionReceiverRelation'
   ListSubscriptionsResponse:
     type: object
     properties:
@@ -1597,6 +1740,25 @@ definitions:
         type: string
       updated_by:
         type: string
+  SubscriptionReceiverRelation:
+    type: object
+    properties:
+      subscription_id:
+        type: string
+        format: uint64
+      receiver_id:
+        type: string
+        format: uint64
+      labels:
+        type: object
+        additionalProperties:
+          type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
   SyncRuntimeConfigResponse:
     type: object
     properties:
@@ -1693,6 +1855,19 @@ definitions:
     properties:
       rule:
         $ref: '#/definitions/Rule'
+  UpdateSubscriptionReceiverResponse:
+    type: object
+    properties:
+      subscription_id:
+        type: string
+        format: uint64
+      receiver_id:
+        type: string
+        format: uint64
+      labels:
+        type: object
+        additionalProperties:
+          type: string
   UpdateSubscriptionResponse:
     type: object
     properties:

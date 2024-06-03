@@ -10,6 +10,9 @@ import (
 	"github.com/goto/siren/core/template"
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/structure"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
 type LogService interface {
@@ -22,20 +25,27 @@ type NotificationService interface {
 
 // Service handles business logic
 type Service struct {
-	cfg                 Config
-	logger              saltlog.Logger
-	repository          Repository
-	logService          LogService
-	notificationService NotificationService
-	registry            map[string]AlertTransformer
+	cfg                  Config
+	logger               saltlog.Logger
+	repository           Repository
+	logService           LogService
+	notificationService  NotificationService
+	registry             map[string]AlertTransformer
+	metricGaugeNumAlerts metric.Int64Gauge
 }
 
 // NewService returns repository struct
 func NewService(cfg Config, logger saltlog.Logger, repository Repository, logService LogService, notificationService NotificationService, registry map[string]AlertTransformer) *Service {
-	return &Service{cfg, logger, repository, logService, notificationService, registry}
+	metricGaugeNumAlerts, err := otel.Meter("github.com/goto/siren/core/alert").
+		Int64Gauge("siren.alert.number")
+	if err != nil {
+		otel.Handle(err)
+	}
+
+	return &Service{cfg, logger, repository, logService, notificationService, registry, metricGaugeNumAlerts}
 }
 
-func (s *Service) CreateAlerts(ctx context.Context, providerType string, providerID uint64, namespaceID uint64, body map[string]any) ([]Alert, error) {
+func (s *Service) CreateAlerts(ctx context.Context, providerType string, providerID uint64, namespaceID uint64, body map[string]any) (alerts []Alert, err error) {
 	pluginService, err := s.getProviderPluginService(providerType)
 	if err != nil {
 		return nil, err
@@ -44,6 +54,10 @@ func (s *Service) CreateAlerts(ctx context.Context, providerType string, provide
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		s.instrumentNumberAlerts(ctx, len(alerts), err)
+	}()
 
 	for i := 0; i < len(alerts); i++ {
 		createdAlert, err := s.repository.Create(ctx, alerts[i])
@@ -188,4 +202,10 @@ func BuildNotifications(
 	}
 
 	return notifications, nil
+}
+
+func (s *Service) instrumentNumberAlerts(ctx context.Context, num int, err error) {
+	s.metricGaugeNumAlerts.Record(ctx, int64(num), metric.WithAttributes(
+		attribute.Bool("success", err == nil),
+	))
 }

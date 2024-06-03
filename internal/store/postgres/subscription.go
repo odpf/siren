@@ -11,6 +11,7 @@ import (
 	"github.com/goto/siren/internal/store/model"
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/pgc"
+	"github.com/goto/siren/pkg/structure"
 	"github.com/lib/pq"
 	"go.nhat.io/otelsql"
 	"go.opentelemetry.io/otel/attribute"
@@ -33,17 +34,17 @@ DELETE from subscriptions where id=$1
 `
 
 var subscriptionListQueryBuilder = sq.Select(
-	"id",
-	"namespace_id",
-	"urn",
-	"receiver",
-	"match",
-	"metadata",
-	"created_by",
-	"updated_by",
-	"created_at",
-	"updated_at",
-).From("subscriptions")
+	"s.id as id",
+	"s.namespace_id as namespace_id",
+	"s.urn as urn",
+	"s.receiver as receiver",
+	"s.match as match",
+	"s.metadata as metadata",
+	"s.created_by as created_by",
+	"s.updated_by as updated_by",
+	"s.created_at as created_at",
+	"s.updated_at as updated_at",
+).Distinct().From("subscriptions s")
 
 var subscriptionMatchLabelsFetchReceiversQueryBuilder = sq.Select(
 	"r.id as id",
@@ -79,11 +80,11 @@ func (r *SubscriptionRepository) List(ctx context.Context, flt subscription.Filt
 	var queryBuilder = subscriptionListQueryBuilder
 
 	if len(flt.IDs) != 0 {
-		queryBuilder = queryBuilder.Where("id = any(?)", pq.Array(flt.IDs))
+		queryBuilder = queryBuilder.Where("s.id = any(?)", pq.Array(flt.IDs))
 	}
 
 	if flt.NamespaceID != 0 {
-		queryBuilder = queryBuilder.Where("namespace_id = ?", flt.NamespaceID)
+		queryBuilder = queryBuilder.Where("s.namespace_id = ?", flt.NamespaceID)
 	}
 
 	// given map of metadata from input [mf], look for rows that [mf] exist in metadata column in DB
@@ -92,7 +93,8 @@ func (r *SubscriptionRepository) List(ctx context.Context, flt subscription.Filt
 		if err != nil {
 			return nil, errors.ErrInvalid.WithMsgf("problem marshalling subscription metadata json to string with err: %s", err.Error())
 		}
-		queryBuilder = queryBuilder.Where(fmt.Sprintf("metadata @> '%s'::jsonb", string(json.RawMessage(metadataJSON))))
+		conditionedJSON := structure.ConditionJSONString(json.RawMessage(metadataJSON))
+		queryBuilder = queryBuilder.Where(fmt.Sprintf("s.metadata @> '%s'::jsonb", conditionedJSON))
 	}
 
 	// given map of string from input [mf], look for rows that [mf] exist in match column in DB
@@ -101,7 +103,8 @@ func (r *SubscriptionRepository) List(ctx context.Context, flt subscription.Filt
 		if err != nil {
 			return nil, errors.ErrInvalid.WithMsgf("problem marshalling match json to string with err: %s", err.Error())
 		}
-		queryBuilder = queryBuilder.Where(fmt.Sprintf("match @> '%s'::jsonb", string(json.RawMessage(labelsJSON))))
+		conditionedJSON := structure.ConditionJSONString(json.RawMessage(labelsJSON))
+		queryBuilder = queryBuilder.Where(fmt.Sprintf("s.match @> '%s'::jsonb", conditionedJSON))
 	}
 
 	// given map of string from input [mf], look for rows that has match column in DB that are subset of [mf]
@@ -110,7 +113,24 @@ func (r *SubscriptionRepository) List(ctx context.Context, flt subscription.Filt
 		if err != nil {
 			return nil, errors.ErrInvalid.WithMsgf("problem marshalling notification labels json to string with err: %s", err.Error())
 		}
-		queryBuilder = queryBuilder.Where(fmt.Sprintf("match <@ '%s'::jsonb", string(json.RawMessage(labelsJSON))))
+		conditionedJSON := structure.ConditionJSONString(json.RawMessage(labelsJSON))
+		queryBuilder = queryBuilder.Where(fmt.Sprintf("s.match <@ '%s'::jsonb", conditionedJSON))
+	}
+
+	// should lookup subscription_receiver table if we want to query based on receiver
+	if flt.ReceiverID != 0 || len(flt.SubscriptionReceiverLabels) != 0 {
+		queryBuilder = queryBuilder.InnerJoin("subscriptions_receivers sr ON s.id = sr.subscription_id")
+		if flt.ReceiverID != 0 {
+			queryBuilder = queryBuilder.Where("sr.receiver_id = ?", flt.ReceiverID)
+		}
+		if len(flt.SubscriptionReceiverLabels) != 0 {
+			subrReceiverLabelsJSON, err := json.Marshal(flt.SubscriptionReceiverLabels)
+			if err != nil {
+				return nil, errors.ErrInvalid.WithMsgf("problem marshalling subscription_receiver_labels json to string with err: %s", err.Error())
+			}
+			conditionedJSON := structure.ConditionJSONString(json.RawMessage(subrReceiverLabelsJSON))
+			queryBuilder = queryBuilder.Where(fmt.Sprintf("sr.labels @> '%s'::jsonb", conditionedJSON))
+		}
 	}
 
 	query, args, err := queryBuilder.PlaceholderFormat(sq.Dollar).ToSql()

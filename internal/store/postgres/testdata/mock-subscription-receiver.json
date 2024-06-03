@@ -9,7 +9,11 @@
     },
     {
         "subscription_id": 1,
-        "receiver_id": 3
+        "receiver_id": 3,
+        "labels": {
+            "lk1": "lv1",
+            "lk2": "lv2"
+        }
     },
     {
         "subscription_id": 2,

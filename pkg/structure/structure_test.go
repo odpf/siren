@@ -168,3 +168,30 @@ func Test_groupByLabels(t *testing.T) {
 		})
 	}
 }
+
+func TestConditionJSONString(t *testing.T) {
+	tests := []struct {
+		raw  []byte
+		want string
+	}{
+		{
+			raw:  []byte("{\"k1\":\"v1\"}"),
+			want: "{\"k1\":\"v1\"}",
+		},
+		{
+			raw:  []byte("{\"k1\\\":\"v1\"}"),
+			want: `{"k1\\":"v1"}`,
+		},
+		{
+			raw:  []byte("{\"k1'\":\"v1\"}"),
+			want: `{"k1\'":"v1"}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(string(tt.raw), func(t *testing.T) {
+			if got := ConditionJSONString(tt.raw); got != tt.want {
+				t.Errorf("ConditionJSONString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

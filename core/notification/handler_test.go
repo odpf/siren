@@ -14,12 +14,12 @@ import (
 
 const testReceiverType = "test"
 
-func TestHandler_MessageHandler(t *testing.T) {
+func TestHandler_SingleMessageHandler(t *testing.T) {
 	testCases := []struct {
-		name     string
-		messages []notification.Message
-		setup    func(*mocks.Queuer, *mocks.Notifier)
-		wantErr  bool
+		name       string
+		messages   []notification.Message
+		setup      func(*mocks.Queuer, *mocks.Notifier)
+		wantErrStr string
 	}{
 		{
 			name: "return error if plugin type is not supported",
@@ -29,8 +29,10 @@ func TestHandler_MessageHandler(t *testing.T) {
 				},
 			},
 			setup: func(q *mocks.Queuer, _ *mocks.Notifier) {
+				q.EXPECT().ErrorCallback(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Message")).Return(nil)
+				q.EXPECT().ErrorCallback(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Message")).Return(nil)
 			},
-			wantErr: true,
+			wantErrStr: "unsupported receiver type: \"random\" on handler ",
 		},
 		{
 			name: "return error if post hook transform config is failing and error callback success",
@@ -43,7 +45,7 @@ func TestHandler_MessageHandler(t *testing.T) {
 				n.EXPECT().PostHookQueueTransformConfigs(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("map[string]interface {}")).Return(nil, errors.New("some error"))
 				q.EXPECT().ErrorCallback(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Message")).Return(nil)
 			},
-			wantErr: true,
+			wantErrStr: "some error",
 		},
 		{
 			name: "return error if post hook transform config is failing and error callback is failing",
@@ -56,7 +58,7 @@ func TestHandler_MessageHandler(t *testing.T) {
 				n.EXPECT().PostHookQueueTransformConfigs(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("map[string]interface {}")).Return(nil, errors.New("some error"))
 				q.EXPECT().ErrorCallback(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Message")).Return(errors.New("some error"))
 			},
-			wantErr: true,
+			wantErrStr: "failed to execute error callback with receiver type test and error some error",
 		},
 		{
 			name: "return error if send message return error and error handler queue return error",
@@ -70,7 +72,7 @@ func TestHandler_MessageHandler(t *testing.T) {
 				n.EXPECT().Send(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Message")).Return(false, errors.New("some error"))
 				q.EXPECT().ErrorCallback(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Message")).Return(errors.New("some error"))
 			},
-			wantErr: true,
+			wantErrStr: "failed to execute error callback with receiver type test and error some error",
 		},
 		{
 			name: "return error if send message return error and error handler queue return no error",
@@ -84,7 +86,7 @@ func TestHandler_MessageHandler(t *testing.T) {
 				n.EXPECT().Send(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Message")).Return(false, errors.New("some error"))
 				q.EXPECT().ErrorCallback(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Message")).Return(nil)
 			},
-			wantErr: true,
+			wantErrStr: "some error",
 		},
 		{
 			name: "return error if send message success and success handler queue return error",
@@ -98,7 +100,7 @@ func TestHandler_MessageHandler(t *testing.T) {
 				n.EXPECT().Send(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Message")).Return(false, nil)
 				q.EXPECT().SuccessCallback(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Message")).Return(errors.New("some error"))
 			},
-			wantErr: true,
+			wantErrStr: "some error",
 		},
 		{
 			name: "return no error if send message success and success handler queue return no error",
@@ -112,7 +114,6 @@ func TestHandler_MessageHandler(t *testing.T) {
 				n.EXPECT().Send(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Message")).Return(false, nil)
 				q.EXPECT().SuccessCallback(mock.AnythingOfType("context.todoCtx"), mock.AnythingOfType("notification.Message")).Return(nil)
 			},
-			wantErr: false,
 		},
 	}
 	for _, tc := range testCases {
@@ -129,8 +130,10 @@ func TestHandler_MessageHandler(t *testing.T) {
 			h := notification.NewHandler(notification.HandlerConfig{}, log.NewNoop(), mockQueue, map[string]notification.Notifier{
 				testReceiverType: mockNotifier,
 			})
-			if err := h.MessageHandler(context.TODO(), tc.messages); (err != nil) != tc.wantErr {
-				t.Errorf("Handler.messageHandler() error = %v, wantErr %v", err, tc.wantErr)
+			if err := h.SingleMessageHandler(context.TODO(), &tc.messages[0]); err != nil {
+				if err.Error() != tc.wantErrStr {
+					t.Errorf("Handler.messageHandler() error = %s, wantErr = %s", err.Error(), tc.wantErrStr)
+				}
 			}
 
 			mockQueue.AssertExpectations(t)

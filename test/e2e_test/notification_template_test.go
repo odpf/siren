@@ -30,7 +30,7 @@ import (
 type NotificationTemplateTestSuite struct {
 	suite.Suite
 	cancelContext      context.CancelFunc
-	client             sirenv1beta1.SirenServiceClient
+	grpcClient         sirenv1beta1.SirenServiceClient
 	cancelClient       func()
 	appConfig          *config.Config
 	testBench          *CortexTest
@@ -51,7 +51,8 @@ func (s *NotificationTemplateTestSuite) SetupTest() {
 		GRPC: server.GRPCConfig{
 			Port: apiPort,
 		},
-		EncryptionKey: testEncryptionKey,
+		EncryptionKey:         testEncryptionKey,
+		SubscriptionV2Enabled: true,
 	}
 	s.appConfig.Notification = notification.Config{
 		MessageHandler: notification.HandlerConfig{
@@ -60,7 +61,6 @@ func (s *NotificationTemplateTestSuite) SetupTest() {
 		DLQHandler: notification.HandlerConfig{
 			Enabled: false,
 		},
-		SubscriptionV2Enabled: true,
 	}
 	s.appConfig.Telemetry.OpenTelemetry.Enabled = false
 
@@ -94,10 +94,10 @@ func (s *NotificationTemplateTestSuite) SetupTest() {
 	time.Sleep(500 * time.Millisecond)
 	StartSirenMessageWorker(ctx, *s.appConfig, s.closeWorkerChannel)
 
-	s.client, s.cancelClient, err = CreateClient(ctx, fmt.Sprintf("localhost:%d", apiPort))
+	s.grpcClient, s.cancelClient, err = CreateClient(ctx, fmt.Sprintf("localhost:%d", apiPort))
 	s.Require().NoError(err)
 
-	bootstrapCortexTestData(&s.Suite, ctx, s.client, s.testBench.NginxHost)
+	bootstrapCortexTestData(&s.Suite, ctx, s.grpcClient, s.testBench.NginxHost)
 }
 
 func (s *NotificationTemplateTestSuite) TearDownTest() {
@@ -154,7 +154,7 @@ If you need to use these characters you are probably better off using one of the
 		"url": testServer.URL,
 	})
 	s.Require().NoError(err)
-	rcv, err := s.client.CreateReceiver(ctx, &sirenv1beta1.CreateReceiverRequest{
+	rcv, err := s.grpcClient.CreateReceiver(ctx, &sirenv1beta1.CreateReceiverRequest{
 		Name:           "notification-http-template",
 		Type:           "http",
 		Labels:         nil,
@@ -178,7 +178,7 @@ If you need to use these characters you are probably better off using one of the
 		})
 	}
 
-	_, err = s.client.UpsertTemplate(ctx, &sirenv1beta1.UpsertTemplateRequest{
+	_, err = s.grpcClient.UpsertTemplate(ctx, &sirenv1beta1.UpsertTemplateRequest{
 		Name:      sampleTemplateFile.Name,
 		Body:      string(body),
 		Tags:      sampleTemplateFile.Tags,
@@ -186,23 +186,24 @@ If you need to use these characters you are probably better off using one of the
 	})
 	s.Require().NoError(err)
 
-	_, err = s.client.CreateSubscription(ctx, &sirenv1beta1.CreateSubscriptionRequest{
+	sub, err := s.grpcClient.CreateSubscription(ctx, &sirenv1beta1.CreateSubscriptionRequest{
 		Urn:       "subscribe-http",
 		Namespace: 1,
-		Receivers: []*sirenv1beta1.ReceiverMetadata{
-			{
-				Id: rcv.GetId(),
-			},
-		},
 		Match: map[string]string{
 			"category": "httpreceiver",
 		},
 	})
 	s.Require().NoError(err)
 
+	_, err = s.grpcClient.AddSubscriptionReceiver(ctx, &sirenv1beta1.AddSubscriptionReceiverRequest{
+		SubscriptionId: sub.GetId(),
+		ReceiverId:     rcv.GetId(),
+	})
+	s.Require().NoError(err)
+
 	time.Sleep(100 * time.Millisecond)
 
-	_, err = s.client.PostNotification(ctx, &sirenv1beta1.PostNotificationRequest{
+	_, err = s.grpcClient.PostNotification(ctx, &sirenv1beta1.PostNotificationRequest{
 		Data: &structpb.Struct{
 			Fields: map[string]*structpb.Value{
 				"title":      structpb.NewStringValue("This is the test notification with template"),

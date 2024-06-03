@@ -10,6 +10,7 @@ import (
 	"github.com/goto/siren/internal/store/model"
 	"github.com/goto/siren/pkg/errors"
 	"github.com/goto/siren/pkg/pgc"
+	"github.com/goto/siren/pkg/structure"
 	"go.nhat.io/otelsql"
 	"go.opentelemetry.io/otel/attribute"
 )
@@ -98,7 +99,8 @@ func (r *SilenceRepository) List(ctx context.Context, flt silence.Filter) ([]sil
 		if err != nil {
 			return nil, errors.ErrInvalid.WithMsgf("problem marshalling json match to string with err: %s", err.Error())
 		}
-		queryBuilder = queryBuilder.Where(fmt.Sprintf("target_expression @> '%s'::jsonb", string(json.RawMessage(labelsJSON))))
+		conditionedJSON := structure.ConditionJSONString(json.RawMessage(labelsJSON))
+		queryBuilder = queryBuilder.Where(fmt.Sprintf("target_expression @> '%s'::jsonb", conditionedJSON))
 	}
 
 	if len(flt.SubscriptionMatch) != 0 {
@@ -106,7 +108,8 @@ func (r *SilenceRepository) List(ctx context.Context, flt silence.Filter) ([]sil
 		if err != nil {
 			return nil, errors.ErrInvalid.WithMsgf("problem marshalling json subscription labels to string with err: %s", err.Error())
 		}
-		queryBuilder = queryBuilder.Where(fmt.Sprintf("target_expression <@ '%s'::jsonb", string(json.RawMessage(labelsJSON))))
+		conditionedJSON := structure.ConditionJSONString(json.RawMessage(labelsJSON))
+		queryBuilder = queryBuilder.Where(fmt.Sprintf("target_expression <@ '%s'::jsonb", conditionedJSON))
 	}
 
 	query, args, err := queryBuilder.PlaceholderFormat(sq.Dollar).ToSql()
@@ -152,7 +155,7 @@ func (r *SilenceRepository) Get(ctx context.Context, id string) (silence.Silence
 	var modelSilence model.Silence
 
 	ctx = otelsql.WithCustomAttributes(
-		ctx, 
+		ctx,
 		[]attribute.KeyValue{
 			attribute.String("db.repository.method", "Get"),
 			attribute.String("db.sql.table", "silences"),

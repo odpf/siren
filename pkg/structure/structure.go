@@ -3,6 +3,7 @@ package structure
 import (
 	"crypto/sha256"
 	"fmt"
+	"strings"
 
 	"github.com/mitchellh/hashstructure/v2"
 )
@@ -58,4 +59,9 @@ func HashGroupKey(groupKey string, hashKey uint64) string {
 	//nolint: errcheck
 	h.Write([]byte(fmt.Sprintf("%s%d", groupKey, hashKey)))
 	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func ConditionJSONString(raw []byte) string {
+	quoted := strings.ReplaceAll(string(raw), `\`, `\\`)
+	return strings.ReplaceAll(quoted, "'", "\\'")
 }

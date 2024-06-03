@@ -129,7 +129,10 @@ func (s *SubscriptionReceiverRepositoryTestSuite) TestList() {
 				{
 					SubscriptionID: 1,
 					ReceiverID:     3,
-					Labels:         map[string]string{},
+					Labels: map[string]string{
+						"lk1": "lv1",
+						"lk2": "lv2",
+					},
 				},
 				{
 					SubscriptionID: 2,
@@ -149,6 +152,25 @@ func (s *SubscriptionReceiverRepositoryTestSuite) TestList() {
 					SubscriptionID: 2,
 					ReceiverID:     3,
 					Labels:         map[string]string{},
+				},
+			},
+		},
+		{
+			Description: "should get all subscriptions receivers with filter label",
+			Filter: subscriptionreceiver.Filter{
+				SubscriptionIDs: []uint64{1},
+				Labels: map[string]string{
+					"lk1": "lv1",
+				},
+			},
+			Expected: []subscriptionreceiver.Relation{
+				{
+					SubscriptionID: 1,
+					ReceiverID:     3,
+					Labels: map[string]string{
+						"lk1": "lv1",
+						"lk2": "lv2",
+					},
 				},
 			},
 		},
@@ -325,7 +347,10 @@ func (s *SubscriptionReceiverRepositoryTestSuite) TestBulkUpsert() {
 					{
 						SubscriptionID: 1,
 						ReceiverID:     3,
-						Labels:         map[string]string{},
+						Labels: map[string]string{
+							"lk1": "lv1",
+							"lk2": "lv2",
+						},
 					},
 				}
 				if diff := cmp.Diff(sr1, expectedSR1,
@@ -367,6 +392,62 @@ func (s *SubscriptionReceiverRepositoryTestSuite) TestBulkUpsert() {
 			}
 			if tc.TesterFunction != nil {
 				tc.TesterFunction(s.T(), tc, s.repository)
+			}
+		})
+	}
+}
+
+func (s *SubscriptionReceiverRepositoryTestSuite) TestUpdate() {
+	type testCase struct {
+		Description string
+		ToUpdate    *subscriptionreceiver.Relation
+		ErrString   string
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should update a subscription receiver relation",
+			ToUpdate: &subscriptionreceiver.Relation{
+				SubscriptionID: 1,
+				ReceiverID:     2,
+				Labels: map[string]string{
+					"newkey": "newvalue",
+				},
+			},
+		},
+		{
+			Description: "should return relation error if subscription id does not exist",
+			ToUpdate: &subscriptionreceiver.Relation{
+				SubscriptionID: 100,
+				ReceiverID:     2,
+				Labels: map[string]string{
+					"newkey": "newvalue",
+				},
+			},
+			ErrString: "subscription with id 100 and receiver with id 2 not found",
+		},
+		{
+			Description: "should return relation error if receiver id does not exist",
+			ToUpdate: &subscriptionreceiver.Relation{
+				SubscriptionID: 1,
+				ReceiverID:     200,
+				Labels: map[string]string{
+					"newkey": "newvalue",
+				},
+			},
+			ErrString: "subscription with id 1 and receiver with id 200 not found",
+		},
+		{
+			Description: "should return error if subscription receiver relation is nil",
+			ErrString:   "subscription receiver relation is nil",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			err := s.repository.Update(s.ctx, tc.ToUpdate)
+			if err != nil && err.Error() != tc.ErrString {
+				s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 			}
 		})
 	}

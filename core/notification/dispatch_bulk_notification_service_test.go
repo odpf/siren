@@ -2,10 +2,10 @@ package notification_test
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	saltlog "github.com/goto/salt/log"
 	"github.com/goto/siren/core/log"
 	"github.com/goto/siren/core/notification"
@@ -170,7 +170,7 @@ func TestReduceMetaMessages(t *testing.T) {
 		wantErr      bool
 	}{
 		{
-			name: "should group meta messages with default receiver id",
+			name: "should group meta messages with receiver id",
 			metaMessages: []notification.MetaMessage{
 				{
 					ReceiverID:      13,
@@ -223,9 +223,9 @@ func TestReduceMetaMessages(t *testing.T) {
 						"k2": "ab",
 					},
 					MergedLabels: map[string][]string{
-						"k1": []string{"receiver-13", "receiver-13"},
-						"k2": []string{"ab", "cd"},
-						"x1": []string{"x1"},
+						"k1": {"receiver-13", "receiver-13"},
+						"k2": {"ab", "cd"},
+						"x1": {"x1"},
 					},
 				},
 				{
@@ -247,7 +247,7 @@ func TestReduceMetaMessages(t *testing.T) {
 			},
 		},
 		{
-			name: "should group meta messages with template",
+			name: "should not group meta messages if receiver and template are different",
 			metaMessages: []notification.MetaMessage{
 				{
 					ReceiverID:      13,
@@ -263,7 +263,7 @@ func TestReduceMetaMessages(t *testing.T) {
 					Template: "template-1",
 				},
 				{
-					ReceiverID:      13,
+					ReceiverID:      14,
 					NotificationIDs: []string{"yy"},
 					SubscriptionIDs: []uint64{3, 4},
 					Data: map[string]any{
@@ -277,7 +277,7 @@ func TestReduceMetaMessages(t *testing.T) {
 					Template: "template-2",
 				},
 				{
-					ReceiverID:      14,
+					ReceiverID:      15,
 					NotificationIDs: []string{"zz"},
 					SubscriptionIDs: []uint64{3, 4},
 					Data: map[string]any{
@@ -306,7 +306,7 @@ func TestReduceMetaMessages(t *testing.T) {
 					MergedLabels: map[string][]string{"k1": {"receiver-13"}, "k2": {"ab"}},
 				},
 				{
-					ReceiverID:      13,
+					ReceiverID:      14,
 					NotificationIDs: []string{"yy"},
 					SubscriptionIDs: []uint64{3, 4},
 					Data: map[string]any{
@@ -321,7 +321,7 @@ func TestReduceMetaMessages(t *testing.T) {
 					MergedLabels: map[string][]string{"k1": {"receiver-13"}, "k2": {"cd"}, "x1": {"x1"}},
 				},
 				{
-					ReceiverID:      14,
+					ReceiverID:      15,
 					NotificationIDs: []string{"zz"},
 					SubscriptionIDs: []uint64{3, 4},
 					Data: map[string]any{
@@ -337,7 +337,7 @@ func TestReduceMetaMessages(t *testing.T) {
 			},
 		},
 		{
-			name: "should group meta messages with group by labels",
+			name: "should group meta messages with group by labels, template and receiver id",
 			groupBy: []string{
 				"k1",
 				"k2",
@@ -376,7 +376,7 @@ func TestReduceMetaMessages(t *testing.T) {
 						"d3": "dv3",
 					},
 					Labels: map[string]string{
-						"k1": "receiver-14",
+						"k1": "receiver-13",
 						"k2": "ab",
 					},
 				},
@@ -388,7 +388,17 @@ func TestReduceMetaMessages(t *testing.T) {
 						"d3": "dv3",
 					},
 					Labels: map[string]string{
-						"k1": "receiver-13",
+						"k2": "ab",
+					},
+				},
+				{
+					ReceiverID:      14,
+					NotificationIDs: []string{"aa"},
+					SubscriptionIDs: []uint64{5, 6},
+					Data: map[string]any{
+						"d3": "dv3",
+					},
+					Labels: map[string]string{
 						"k2": "ab",
 					},
 				},
@@ -396,8 +406,8 @@ func TestReduceMetaMessages(t *testing.T) {
 			want: []notification.MetaMessage{
 				{
 					ReceiverID:      13,
-					NotificationIDs: []string{"xx", "aa"},
-					SubscriptionIDs: []uint64{1, 2, 5, 6},
+					NotificationIDs: []string{"xx", "zz"},
+					SubscriptionIDs: []uint64{1, 2, 3, 4},
 					Data: map[string]any{
 						"d1": "dv1",
 					},
@@ -423,16 +433,27 @@ func TestReduceMetaMessages(t *testing.T) {
 				},
 				{
 					ReceiverID:      13,
-					NotificationIDs: []string{"zz"},
-					SubscriptionIDs: []uint64{3, 4},
+					NotificationIDs: []string{"aa"},
+					SubscriptionIDs: []uint64{5, 6},
 					Data: map[string]any{
 						"d3": "dv3",
 					},
 					Labels: map[string]string{
-						"k1": "receiver-14",
 						"k2": "ab",
 					},
-					MergedLabels: map[string][]string{"k1": {"receiver-14"}, "k2": {"ab"}},
+					MergedLabels: map[string][]string{"k2": {"ab"}},
+				},
+				{
+					ReceiverID:      14,
+					NotificationIDs: []string{"aa"},
+					SubscriptionIDs: []uint64{5, 6},
+					Data: map[string]any{
+						"d3": "dv3",
+					},
+					Labels: map[string]string{
+						"k2": "ab",
+					},
+					MergedLabels: map[string][]string{"k2": {"ab"}},
 				},
 			},
 		},
@@ -444,7 +465,13 @@ func TestReduceMetaMessages(t *testing.T) {
 				t.Errorf("ReduceMetaMessages() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if diff := cmp.Diff(got, tt.want, cmpopts.SortSlices(func(i, j notification.MetaMessage) bool { return i.ReceiverID < j.ReceiverID })); diff != "" {
+			sort.Slice(got, func(i, j int) bool {
+				return got[i].ReceiverID < got[j].ReceiverID
+			})
+			sort.Slice(tt.want, func(i, j int) bool {
+				return tt.want[i].ReceiverID < tt.want[j].ReceiverID
+			})
+			if diff := cmp.Diff(got, tt.want); diff != "" {
 				t.Errorf("ReduceMetaMessages() diff = %v", diff)
 			}
 		})

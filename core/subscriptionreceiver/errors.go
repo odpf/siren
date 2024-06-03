@@ -13,15 +13,12 @@ var (
 type NotFoundError struct {
 	SubscriptionID uint64
 	ReceiverID     uint64
+	ErrStr         string
 }
 
 func (err NotFoundError) Error() string {
-	if err.SubscriptionID != 0 {
-		return fmt.Sprintf("subscription with id %d not found", err.SubscriptionID)
+	if err.ErrStr != "" {
+		return err.ErrStr
 	}
-	if err.ReceiverID != 0 {
-		return fmt.Sprintf("receiver with id %d not found", err.ReceiverID)
-	}
-
-	return "subscription receiver pair not found"
+	return fmt.Sprintf("subscription with id %d and receiver with id %d not found", err.SubscriptionID, err.ReceiverID)
 }

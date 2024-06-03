@@ -225,18 +225,19 @@ If you need to use these characters you are probably better off using one of the
 		})
 		s.Require().NoError(err)
 
-		_, err = s.grpcClient.CreateSubscription(ctx, &sirenv1beta1.CreateSubscriptionRequest{
+		sub, err := s.grpcClient.CreateSubscription(ctx, &sirenv1beta1.CreateSubscriptionRequest{
 			Urn:       "subscribe-http-three",
 			Namespace: 1,
-			Receivers: []*sirenv1beta1.ReceiverMetadata{
-				{
-					Id: 1,
-				},
-			},
 			Match: map[string]string{
 				"team":    "gotocompany",
 				"service": "some-service",
 			},
+		})
+		s.Require().NoError(err)
+
+		_, err = s.grpcClient.AddSubscriptionReceiver(ctx, &sirenv1beta1.AddSubscriptionReceiverRequest{
+			SubscriptionId: sub.GetId(),
+			ReceiverId:     1,
 		})
 		s.Require().NoError(err)
 

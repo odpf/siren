@@ -250,19 +250,20 @@ func (s *CortexWebhookTestSuite) TestIncomingHookAPI() {
 		})
 		s.Require().NoError(err)
 
-		_, err = s.grpcClient.CreateSubscription(ctx, &sirenv1beta1.CreateSubscriptionRequest{
+		sub, err := s.grpcClient.CreateSubscription(ctx, &sirenv1beta1.CreateSubscriptionRequest{
 			Urn:       "subscribe-http",
 			Namespace: 1,
-			Receivers: []*sirenv1beta1.ReceiverMetadata{
-				{
-					Id: 1,
-				},
-			},
 			Match: map[string]string{
 				"team":        "gotocompany",
 				"service":     "some-service",
 				"environment": "integration",
 			},
+		})
+		s.Require().NoError(err)
+
+		_, err = s.grpcClient.AddSubscriptionReceiver(ctx, &sirenv1beta1.AddSubscriptionReceiverRequest{
+			SubscriptionId: sub.GetId(),
+			ReceiverId:     1,
 		})
 		s.Require().NoError(err)
 

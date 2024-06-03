@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/goto/siren/core/subscription"
+	"github.com/goto/siren/core/subscriptionreceiver"
+	"github.com/goto/siren/pkg/errors"
 	sirenv1beta1 "github.com/goto/siren/proto/gotocompany/siren/v1beta1"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -27,11 +29,13 @@ func (s *GRPCServer) ListSubscriptions(ctx context.Context, req *sirenv1beta1.Li
 
 	if s.cfg.subscriptionV2Enabled {
 		subscriptions, err = s.subscriptionService.ListV2(ctx, subscription.Filter{
-			NamespaceID:       req.GetNamespaceId(),
-			SilenceID:         req.GetSilenceId(),
-			Metadata:          metadataQuery,
-			Match:             req.GetMatch(),
-			NotificationMatch: req.GetNotificationMatch(),
+			NamespaceID:                req.GetNamespaceId(),
+			SilenceID:                  req.GetSilenceId(),
+			Metadata:                   metadataQuery,
+			Match:                      req.GetMatch(),
+			NotificationMatch:          req.GetNotificationMatch(),
+			ReceiverID:                 req.GetReceiverId(),
+			SubscriptionReceiverLabels: req.GetSubscriptionReceiverLabels(),
 		})
 	} else {
 		subscriptions, err = s.subscriptionService.List(ctx, subscription.Filter{
@@ -85,6 +89,17 @@ func (s *GRPCServer) ListSubscriptions(ctx context.Context, req *sirenv1beta1.Li
 	return &sirenv1beta1.ListSubscriptionsResponse{
 		Subscriptions: items,
 	}, nil
+}
+
+func getReceiverMetadataListInDomainObject(domainReceivers []*sirenv1beta1.ReceiverMetadata) []subscription.Receiver {
+	receivers := make([]subscription.Receiver, 0)
+	for _, item := range domainReceivers {
+		receivers = append(receivers, subscription.Receiver{
+			ID:            item.Id,
+			Configuration: item.Configuration.AsMap(),
+		})
+	}
+	return receivers
 }
 
 func (s *GRPCServer) CreateSubscription(ctx context.Context, req *sirenv1beta1.CreateSubscriptionRequest) (*sirenv1beta1.CreateSubscriptionResponse, error) {
@@ -204,13 +219,83 @@ func (s *GRPCServer) DeleteSubscription(ctx context.Context, req *sirenv1beta1.D
 	return &sirenv1beta1.DeleteSubscriptionResponse{}, nil
 }
 
-func getReceiverMetadataListInDomainObject(domainReceivers []*sirenv1beta1.ReceiverMetadata) []subscription.Receiver {
-	receivers := make([]subscription.Receiver, 0)
-	for _, item := range domainReceivers {
-		receivers = append(receivers, subscription.Receiver{
-			ID:            item.Id,
-			Configuration: item.Configuration.AsMap(),
-		})
+func (s *GRPCServer) AddSubscriptionReceiver(ctx context.Context, req *sirenv1beta1.AddSubscriptionReceiverRequest) (*sirenv1beta1.AddSubscriptionReceiverResponse, error) {
+	if err := s.subscriptionReceiverService.BulkUpsert(ctx, []subscriptionreceiver.Relation{
+		{
+			SubscriptionID: req.GetSubscriptionId(),
+			ReceiverID:     req.GetReceiverId(),
+			Labels:         req.GetLabels(),
+		},
+	}); err != nil {
+		return nil, s.generateRPCErr(err)
 	}
-	return receivers
+	return &sirenv1beta1.AddSubscriptionReceiverResponse{
+		SubscriptionId: req.GetSubscriptionId(),
+		ReceiverId:     req.GetReceiverId(),
+		Labels:         req.GetLabels(),
+	}, nil
+}
+
+func (s *GRPCServer) UpdateSubscriptionReceiver(ctx context.Context, req *sirenv1beta1.UpdateSubscriptionReceiverRequest) (*sirenv1beta1.UpdateSubscriptionReceiverResponse, error) {
+	if err := s.subscriptionReceiverService.Update(ctx, &subscriptionreceiver.Relation{
+		SubscriptionID: req.GetSubscriptionId(),
+		ReceiverID:     req.GetReceiverId(),
+		Labels:         req.GetLabels(),
+	}); err != nil {
+		return nil, s.generateRPCErr(err)
+	}
+	return &sirenv1beta1.UpdateSubscriptionReceiverResponse{
+		SubscriptionId: req.GetSubscriptionId(),
+		ReceiverId:     req.GetReceiverId(),
+		Labels:         req.GetLabels(),
+	}, nil
+}
+
+func (s *GRPCServer) DeleteSubscriptionReceiver(ctx context.Context, req *sirenv1beta1.DeleteSubscriptionReceiverRequest) (*sirenv1beta1.DeleteSubscriptionReceiverResponse, error) {
+	if err := s.subscriptionReceiverService.BulkSoftDelete(ctx, subscriptionreceiver.DeleteFilter{
+		Pair: []subscriptionreceiver.Relation{
+			{
+				SubscriptionID: req.GetSubscriptionId(),
+				ReceiverID:     req.GetReceiverId(),
+			},
+		},
+	}); err != nil {
+		return nil, s.generateRPCErr(err)
+	}
+	return &sirenv1beta1.DeleteSubscriptionReceiverResponse{}, nil
+}
+
+func (s *GRPCServer) ListSubscriptionReceivers(ctx context.Context, req *sirenv1beta1.ListSubscriptionReceiversRequest) (*sirenv1beta1.ListSubscriptionReceiversResponse, error) {
+	subscriptionID := req.GetSubscriptionId()
+	if subscriptionID == 0 {
+		return nil, s.generateRPCErr(errors.ErrInvalid.WithMsgf("subscription id cannot be zero or empty"))
+	}
+
+	relations, err := s.subscriptionReceiverService.List(ctx, subscriptionreceiver.Filter{
+		SubscriptionIDs: []uint64{
+			subscriptionID,
+		},
+		Labels:  req.GetLabels(),
+		Deleted: false,
+	})
+
+	if err != nil {
+		return nil, s.generateRPCErr(err)
+	}
+
+	items := []*sirenv1beta1.SubscriptionReceiverRelation{}
+
+	for _, rel := range relations {
+		item := &sirenv1beta1.SubscriptionReceiverRelation{
+			SubscriptionId: rel.SubscriptionID,
+			ReceiverId:     rel.ReceiverID,
+			Labels:         rel.Labels,
+			CreatedAt:      timestamppb.New(rel.CreatedAt),
+			UpdatedAt:      timestamppb.New(rel.UpdatedAt),
+		}
+		items = append(items, item)
+	}
+	return &sirenv1beta1.ListSubscriptionReceiversResponse{
+		SubscriptionReceivers: items,
+	}, nil
 }

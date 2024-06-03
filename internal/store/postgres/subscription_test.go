@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -71,6 +72,11 @@ func (s *SubscriptionRepositoryTestSuite) SetupSuite() {
 func (s *SubscriptionRepositoryTestSuite) SetupTest() {
 	var err error
 	_, err = bootstrapSubscription(s.client)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	_, err = bootstrapSubscriptionReceiver(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -342,6 +348,98 @@ func (s *SubscriptionRepositoryTestSuite) TestList() {
 				},
 			},
 		},
+		{
+			Description: "should get correct filtered subscriptions by relation labels",
+			Filter: subscription.Filter{
+				SubscriptionReceiverLabels: map[string]string{
+					"lk1": "lv1",
+				},
+			},
+			ExpectedSubscriptions: []subscription.Subscription{
+				{
+					ID:        1,
+					URN:       "alert-history-gotocompany",
+					Namespace: 2,
+					Receivers: []subscription.Receiver{
+						{
+							ID: 1,
+						},
+						{ID: 2},
+						{ID: 3,
+							Configuration: map[string]any{
+								"channel_name": string("gotocompany-data"),
+							},
+						},
+					},
+					Match: map[string]string{},
+					Metadata: map[string]any{
+						"team": "alert-history",
+						"sample_json": map[string]any{
+							"sample_json_int":    float64(1),
+							"sample_json_string": "alert-history",
+						},
+					},
+				},
+			},
+		},
+		{
+			Description: "should get correct filtered subscriptions by receiver id",
+			Filter: subscription.Filter{
+				ReceiverID: 3,
+			},
+			ExpectedSubscriptions: []subscription.Subscription{
+				{
+					ID:        1,
+					URN:       "alert-history-gotocompany",
+					Namespace: 2,
+					Receivers: []subscription.Receiver{
+						{
+							ID: 1,
+						},
+						{ID: 2},
+						{ID: 3,
+							Configuration: map[string]any{
+								"channel_name": string("gotocompany-data"),
+							},
+						},
+					},
+					Match: map[string]string{},
+					Metadata: map[string]any{
+						"team": "alert-history",
+						"sample_json": map[string]any{
+							"sample_json_int":    float64(1),
+							"sample_json_string": "alert-history",
+						},
+					},
+				},
+				{
+					ID:        2,
+					URN:       "gotocompany-data-warning",
+					Namespace: 1,
+					Receivers: []subscription.Receiver{
+						{
+							ID: 3,
+							Configuration: map[string]any{
+								"channel_name": "gotocompany-data",
+							},
+						},
+					},
+					Match: map[string]string{
+						"environment": "integration",
+						"team":        "gotocompany-data",
+					},
+					Metadata: map[string]any{
+						"team": "gotocompany-data",
+						"sample_json": map[string]any{
+							"sample_json_int":    float64(1),
+							"sample_json_string": "gotocompany-data",
+						},
+					},
+					CreatedBy: "user@gotocompany.com",
+					UpdatedBy: "admin@gotocompany.com",
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -350,6 +448,12 @@ func (s *SubscriptionRepositoryTestSuite) TestList() {
 			if err != nil && err.Error() != tc.ErrString {
 				s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 			}
+			sort.Slice(got, func(i, j int) bool {
+				return got[i].ID < got[j].ID
+			})
+			sort.Slice(tc.ExpectedSubscriptions, func(i, j int) bool {
+				return tc.ExpectedSubscriptions[i].ID < tc.ExpectedSubscriptions[j].ID
+			})
 			if diff := cmp.Diff(got, tc.ExpectedSubscriptions, cmpopts.IgnoreFields(subscription.Subscription{}, "CreatedAt", "UpdatedAt")); diff != "" {
 				s.T().Fatalf("got diff %+v", diff)
 			}

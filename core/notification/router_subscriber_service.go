@@ -14,9 +14,6 @@ import (
 )
 
 const (
-	metricRouterSubscriberAttributePrepareMessage = "preparemessage.status"
-	metricRouterSubscriberAttributePrepareSuccess = "preparemessage.success"
-
 	metricRouterSubscriberStatusMatchError       = "MATCH_ERROR"
 	metricRouterSubscriberStatusMatchNotFound    = "MATCH_NOT_FOUND"
 	metricRouterSubscriberStatusMessageInitError = "MESSAGE_INIT_ERROR"
@@ -188,7 +185,7 @@ func (s *RouterSubscriberService) PrepareMessageV2(ctx context.Context, n Notifi
 	messages = make([]Message, 0)
 
 	defer func() {
-		s.instrumentDispatchSubscription(ctx, metricRouterSubscriberAttributePrepareMessage, metricStatus, err)
+		s.instrumentDispatchSubscription(ctx, n, metricStatus, err)
 	}()
 
 	receiversView, err := s.deps.SubscriptionService.MatchByLabelsV2(ctx, n.NamespaceID, n.Labels)
@@ -236,10 +233,12 @@ func (s *RouterSubscriberService) PrepareMessageV2(ctx context.Context, n Notifi
 	return messages, notificationLogs, hasSilenced, nil
 }
 
-func (s *RouterSubscriberService) instrumentDispatchSubscription(ctx context.Context, attributeKey, attributeValue string, err error) {
+func (s *RouterSubscriberService) instrumentDispatchSubscription(ctx context.Context, n Notification, status string, err error) {
 	s.metricCounterRouterSubscriber.Add(ctx, 1, metric.WithAttributes(
-		attribute.String(attributeKey, attributeValue),
-		attribute.Bool("operation.success", err == nil),
+		attribute.String("route.subscriber.status", status),
+		attribute.String("notification.type", n.Type),
+		attribute.String("notification.template", n.Template),
+		attribute.Bool("success", err == nil),
 	))
 }
 
@@ -247,7 +246,7 @@ func (s *RouterSubscriberService) PrepareMetaMessages(ctx context.Context, n Not
 	var metricStatus = metricRouterSubscriberStatusSuccess
 
 	defer func() {
-		s.instrumentDispatchSubscription(ctx, metricRouterSubscriberAttributePrepareMessage, metricStatus, err)
+		s.instrumentDispatchSubscription(ctx, n, metricStatus, err)
 	}()
 
 	receiversView, err := s.deps.SubscriptionService.MatchByLabelsV2(ctx, n.NamespaceID, n.Labels)

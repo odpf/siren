@@ -6,6 +6,9 @@ import (
 	"time"
 
 	"github.com/goto/salt/log"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 
 	"github.com/goto/siren/pkg/errors"
 )
@@ -22,16 +25,23 @@ type Handler struct {
 	notifierRegistry       map[string]Notifier
 	supportedReceiverTypes []string
 	batchSize              int
+	metricHistMQDuration   metric.Int64Histogram
 }
 
 // NewHandler creates a new handler with some supported type of Notifiers
 func NewHandler(cfg HandlerConfig, logger log.Logger, q Queuer, registry map[string]Notifier, opts ...HandlerOption) *Handler {
+	metricHistMQDuration, err := otel.Meter("github.com/goto/siren/core/notification").
+		Int64Histogram("siren.notification.queue.duration")
+	if err != nil {
+		otel.Handle(err)
+	}
 	h := &Handler{
 		batchSize: defaultBatchSize,
 
-		logger:           logger,
-		notifierRegistry: registry,
-		q:                q,
+		logger:               logger,
+		notifierRegistry:     registry,
+		q:                    q,
+		metricHistMQDuration: metricHistMQDuration,
 	}
 
 	if cfg.BatchSize != 0 {
@@ -89,42 +99,64 @@ func (h *Handler) Process(ctx context.Context, runAt time.Time) error {
 	return nil
 }
 
+func (h *Handler) errorMessageHandler(ctx context.Context, retryable bool, herr error, msg *Message) error {
+	msg.MarkFailed(time.Now(), retryable, herr)
+	if err := h.q.ErrorCallback(ctx, *msg); err != nil {
+		return fmt.Errorf("failed to execute error callback with receiver type %s and error %w", msg.ReceiverType, err)
+	}
+	return herr
+}
+
 // MessageHandler is a function to handler dequeued message
 func (h *Handler) MessageHandler(ctx context.Context, messages []Message) error {
-	for _, message := range messages {
-		notifier, err := h.getNotifierPlugin(message.ReceiverType)
-		if err != nil {
-			return err
+	for _, msg := range messages {
+		if err := h.SingleMessageHandler(ctx, &msg); err != nil {
+			h.logger.Error(err.Error())
 		}
+	}
+	return nil
+}
 
-		message.MarkPending(time.Now())
+func (h *Handler) SingleMessageHandler(ctx context.Context, msg *Message) error {
 
-		newConfig, err := notifier.PostHookQueueTransformConfigs(ctx, message.Configs)
-		if err != nil {
-			message.MarkFailed(time.Now(), false, err)
+	defer func() {
+		h.instrumentMQDuration(ctx, msg)
+	}()
 
-			if cerr := h.q.ErrorCallback(ctx, message); cerr != nil {
-				return cerr
-			}
-			return err
-		}
-		message.Configs = newConfig
+	notifier, err := h.getNotifierPlugin(msg.ReceiverType)
+	if err != nil {
+		return h.errorMessageHandler(ctx, false, err, msg)
+	}
 
-		if retryable, err := notifier.Send(ctx, message); err != nil {
-			message.MarkFailed(time.Now(), retryable, err)
+	msg.MarkPending(time.Now())
 
-			if cerr := h.q.ErrorCallback(ctx, message); cerr != nil {
-				return cerr
-			}
-			return err
-		}
+	newConfig, err := notifier.PostHookQueueTransformConfigs(ctx, msg.Configs)
+	if err != nil {
+		return h.errorMessageHandler(ctx, false, err, msg)
+	}
+	msg.Configs = newConfig
 
-		message.MarkPublished(time.Now())
+	if retryable, err := notifier.Send(ctx, *msg); err != nil {
+		return h.errorMessageHandler(ctx, retryable, err, msg)
+	}
 
-		if err := h.q.SuccessCallback(ctx, message); err != nil {
-			return err
-		}
+	msg.MarkPublished(time.Now())
+
+	if err := h.q.SuccessCallback(ctx, *msg); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+func (h *Handler) instrumentMQDuration(ctx context.Context, msg *Message) {
+	h.metricHistMQDuration.Record(
+		ctx, time.Since(msg.CreatedAt).Milliseconds(), metric.WithAttributes(
+			attribute.String("receiver_type", msg.ReceiverType),
+			attribute.String("status", string(msg.Status)),
+			attribute.Int("try_count", msg.TryCount),
+			attribute.Int("max_try", msg.MaxTries),
+			attribute.Bool("retryable", msg.Retryable),
+		),
+	)
 }
