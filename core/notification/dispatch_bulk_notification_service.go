@@ -102,6 +102,11 @@ func (s *DispatchBulkNotificationService) Dispatch(ctx context.Context, ns []Not
 		return nil, err
 	}
 
+	if len(metaMessages) == 0 {
+		s.deps.Logger.Info("no meta messages to process")
+		return nil, nil
+	}
+
 	if err := s.deps.LogService.LogNotifications(ctx, notificationLogs...); err != nil {
 		return nil, fmt.Errorf("failed logging notifications: %w", err)
 	}
