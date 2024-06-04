@@ -141,7 +141,9 @@ func (s *GRPCServer) PostBulkNotifications(ctx context.Context, req *sirenv1beta
 	}
 
 	if len(notificationIDs) == 0 {
-		return &sirenv1beta1.PostBulkNotificationsResponse{}, nil
+		return &sirenv1beta1.PostBulkNotificationsResponse{
+			NotificationIds: []string{},
+		}, nil
 	}
 
 	if idempotencyKey != "" {
