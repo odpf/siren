@@ -2,15 +2,23 @@
 
 Notification is one of main features in Siren. Siren capables to send notification to various receivers (Slack, PagerDuty). Notification in Siren could be sent directly to a receiver or user could subscribe notifications by providing key-value label matchers. For the latter, Siren able to routes notification directly to receivers or to specific receivers by matching notification key-value labels with the provided label matchers.
 
+Sending bulk notifications is also supported in Siren. But this mode is only supporting subscription-based routing.
+
 Below is how the notification is implemented in Siren
 
 ![Notification in Siren](../../static/img/siren_notification.svg)
 
-**Notification Source** is a point where a notification is generated. In Siren, there are two points of notification source: 
-- `POST /notifications` API
+There are multiple entry points in Siren: 
 - Alerts webhook API
+    - Use by provider to send alerts
+- `POST /notifications` API
+    - To send a single notification through receiver based routing or subscription based routing
+- `POST /bulk-notifications` API
+    - To send bulk notifications through subscription based routing
 
-The first one will generate and publish notification when the API is invoked with some message in its payload and the latter one will always generate and publish notification everytime the hook API is called by the provider.
+Alerts that are being sent by provider will be translated to a `Notification` by `Notification Service`. From this point, the notification is being dispatched by a `Notification Dispatcher` according to the strategy that it took (Bulk or Single Notification).
+
+For bulk notifications, notifications are evaluated by the subscription and meta messages will be generated. The generated meta messages could be grouped by a certain configuration. At the end, the messages will be enqueued and handled to be sent to the external notification services (e.g. Slack, Pagerduty, etc).
 
 ## Notification Message
 

@@ -26,6 +26,9 @@ module.exports = {
           editUrl: 'https://github.com/goto/siren/edit/master/docs/',
           sidebarCollapsed: true,
           breadcrumbs: false,
+          docLayoutComponent: "@theme/DocPage",
+          docItemComponent: "@theme/ApiItem", // Derived from docusaurus-theme-openapi-docs
+
         },
         blog: false,
         theme: {
@@ -40,7 +43,26 @@ module.exports = {
       }),
     ],
   ],
-
+  plugins: [
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: "apiDocs",
+        docsPluginId: "classic",
+        config: {
+          auth: {
+            specPath: "../proto/siren.swagger.yaml",
+            outputDir: "docs/apis",
+            sidebarOptions: {
+              groupPathsBy: "tag",
+            },
+            hideSendButton: false,
+          }
+        }
+      },
+    ],
+  ],
+  themes: ["docusaurus-theme-openapi-docs"],
   themeConfig:
     ({
       colorMode: {

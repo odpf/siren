@@ -68,11 +68,13 @@ clean-doc:
 	@rm -rf ./docs/docs/reference/cli
 	@rm -f ./docs/docs/reference/api.md
 
-# Generates the config file documentation.
-# remove ansi color & escape html
-doc: clean-doc update-swagger-md
+doc: clean-doc ## Generate api and cli documentation
 	@echo "> generate cli docs"
 	@go run . reference --plain | sed '1 s,.*,# CLI,' > ./docs/docs/reference/cli.md
+	@echo ">generate api docs"
+	@cd $(CURDIR)/docs/docs; yarn docusaurus clean-api-docs all;  yarn docusaurus gen-api-docs all
+	@echo "> format api docs"
+	@npx prettier --write $(CURDIR)/docs/docs/apis/*.mdx
 
 help: ## Display this help message
 	@cat $(MAKEFILE_LIST) | grep -e "^[a-zA-Z_\-]*: *.*## *" | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

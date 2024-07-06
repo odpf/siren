@@ -59,7 +59,7 @@ You can manage alerting rules, subscribe to, and sending a notification in any o
 You can use the Siren command line interface to issue commands and to perform the entire Siren features. Using the command line can be faster and more convenient than using API. For more information on using the Siren CLI, see the [CLI Reference](./reference/cli.md) page.
 
 ### HTTPS API
-You can get hands on rule configuration, sending notification, notification subscription and much more by using the Siren HTTPS API, which lets you issue HTTPS requests directly to the service. For more information, see the [API Reference page](./reference/api.md).
+You can get hands on rule configuration, sending notification, notification subscription and much more by using the Siren HTTPS API, which lets you issue HTTPS requests directly to the service. For more information, see the [API Reference page](./apis/).
 
 ## Where to go from here
 

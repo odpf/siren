@@ -260,6 +260,37 @@ Edit a subscription
 
 List subscriptions
 
+### `siren subscription receiver`
+
+Manage subscriptions receiver
+
+#### `siren subscription receiver add [flags]`
+
+Add a receiver to a subscription
+
+```
+-f, --file string   path to the subscription config
+````
+
+#### `siren subscription receiver edit [flags]`
+
+Edit a subscription receiver
+
+```
+-f, --file string            Path to the subscription config
+-r, --receiver_id uint       receiver id
+-s, --subscription_id uint   subscription id
+````
+
+#### `siren subscription receiver remove [flags]`
+
+Remove receiver of a subscription
+
+```
+-r, --receiver_id uint       receiver id
+-s, --subscription_id uint   subscription id
+````
+
 ### `siren subscription view [flags]`
 
 View a subscription details

@@ -73,9 +73,19 @@ module.exports = {
     },
     {
       type: "category",
+      label: "APIs",
+      link: {
+        type: "doc",
+        id: "apis/siren-apis",
+      },
+      items: [
+        require("./docs/apis/sidebar.js")
+      ]
+    },
+    {
+      type: "category",
       label: "Reference",
       items: [
-        "reference/api",
         "reference/server_configuration",
         "reference/client_configuration",
         "reference/cli",
