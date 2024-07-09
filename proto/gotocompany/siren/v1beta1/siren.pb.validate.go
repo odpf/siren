@@ -2982,6 +2982,8 @@ func (m *ReceiverMetadata) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for SubscriptionReceiverLabels
+
 	if len(errors) > 0 {
 		return ReceiverMetadataMultiError(errors)
 	}
@@ -3338,6 +3340,8 @@ func (m *ListSubscriptionsRequest) validate(all bool) error {
 	// no validation rules for ReceiverId
 
 	// no validation rules for SubscriptionReceiverLabels
+
+	// no validation rules for WithSubscriptionReceiver
 
 	if len(errors) > 0 {
 		return ListSubscriptionsRequestMultiError(errors)

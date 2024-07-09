@@ -54,15 +54,24 @@ func (s *Service) ListV2(ctx context.Context, flt Filter) ([]Subscription, error
 	var receiversMap = map[uint64][]Receiver{}
 	for _, subRcv := range subscriptionsReceivers {
 		if len(receiversMap[subRcv.SubscriptionID]) == 0 {
-			receiversMap[subRcv.SubscriptionID] = []Receiver{
-				{
-					ID: subRcv.ReceiverID,
-				},
-			}
-		} else {
-			receiversMap[subRcv.SubscriptionID] = append(receiversMap[subRcv.SubscriptionID], Receiver{
+			rcv := &Receiver{
 				ID: subRcv.ReceiverID,
-			})
+			}
+
+			if flt.WithSubscriptionReceiver {
+				rcv.SubscriptionReceiverLabels = subRcv.Labels
+			}
+
+			receiversMap[subRcv.SubscriptionID] = []Receiver{*rcv}
+		} else {
+			rcv := &Receiver{
+				ID: subRcv.ReceiverID,
+			}
+
+			if flt.WithSubscriptionReceiver {
+				rcv.SubscriptionReceiverLabels = subRcv.Labels
+			}
+			receiversMap[subRcv.SubscriptionID] = append(receiversMap[subRcv.SubscriptionID], *rcv)
 		}
 	}
 

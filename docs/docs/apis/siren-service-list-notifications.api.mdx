@@ -5,7 +5,153 @@ description: "List notifications"
 sidebar_label: "List notifications"
 hide_title: true
 hide_table_of_contents: true
-api: {"operationId":"SirenService_ListNotifications","responses":{"200":{"description":"A successful response.","content":{"application/json":{"schema":{"type":"object","properties":{"notifications":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"namespace_id":{"type":"string","format":"uint64"},"type":{"type":"string"},"data":{"type":"object"},"labels":{"type":"object","additionalProperties":{"type":"string"}},"valid_duration":{"type":"string"},"template":{"type":"string"},"create_at":{"type":"string","format":"date-time"},"unique_key":{"type":"string"},"receiver_selectors":{"type":"array","items":{"type":"object","properties":{"receiver_selector":{"type":"object","additionalProperties":{"type":"string"}}}}}}}}}}}}},"default":{"description":"An unexpected error response.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"integer","format":"int32"},"message":{"type":"string"},"details":{"type":"array","items":{"type":"object","properties":{"@type":{"type":"string"}},"additionalProperties":{}}}}}}}}},"parameters":[{"name":"type","in":"query","required":false,"schema":{"type":"string"}},{"name":"template","in":"query","required":false,"schema":{"type":"string"}}],"tags":["Notification"],"description":"List notifications","method":"get","path":"/v1beta1/notifications","info":{"title":"Siren APIs","description":"Documentation of our Siren API with gRPC and\ngRPC-Gateway.","version":"0.6"},"postman":{"name":"List notifications","description":{"type":"text/plain"},"url":{"path":["v1beta1","notifications"],"host":["{{baseUrl}}"],"query":[{"disabled":false,"key":"type","value":""},{"disabled":false,"key":"template","value":""}],"variable":[]},"header":[{"key":"Accept","value":"application/json"}],"method":"GET"}}
+api:
+  {
+    "operationId": "SirenService_ListNotifications",
+    "responses":
+      {
+        "200":
+          {
+            "description": "A successful response.",
+            "content":
+              {
+                "application/json":
+                  {
+                    "schema":
+                      {
+                        "type": "object",
+                        "properties":
+                          {
+                            "notifications":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      {
+                                        "id": { "type": "string" },
+                                        "namespace_id":
+                                          {
+                                            "type": "string",
+                                            "format": "uint64",
+                                          },
+                                        "type": { "type": "string" },
+                                        "data": { "type": "object" },
+                                        "labels":
+                                          {
+                                            "type": "object",
+                                            "additionalProperties":
+                                              { "type": "string" },
+                                          },
+                                        "valid_duration": { "type": "string" },
+                                        "template": { "type": "string" },
+                                        "create_at":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                          },
+                                        "unique_key": { "type": "string" },
+                                        "receiver_selectors":
+                                          {
+                                            "type": "array",
+                                            "items":
+                                              {
+                                                "type": "object",
+                                                "properties":
+                                                  {
+                                                    "receiver_selector":
+                                                      {
+                                                        "type": "object",
+                                                        "additionalProperties":
+                                                          { "type": "string" },
+                                                      },
+                                                  },
+                                              },
+                                          },
+                                      },
+                                  },
+                              },
+                          },
+                      },
+                  },
+              },
+          },
+        "default":
+          {
+            "description": "An unexpected error response.",
+            "content":
+              {
+                "application/json":
+                  {
+                    "schema":
+                      {
+                        "type": "object",
+                        "properties":
+                          {
+                            "code": { "type": "integer", "format": "int32" },
+                            "message": { "type": "string" },
+                            "details":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      { "@type": { "type": "string" } },
+                                    "additionalProperties": {},
+                                  },
+                              },
+                          },
+                      },
+                  },
+              },
+          },
+      },
+    "parameters":
+      [
+        {
+          "name": "type",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "string" },
+        },
+        {
+          "name": "template",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "string" },
+        },
+      ],
+    "tags": ["Notification"],
+    "description": "List notifications",
+    "method": "get",
+    "path": "/v1beta1/notifications",
+    "info":
+      {
+        "title": "Siren APIs",
+        "description": "Documentation of our Siren API with gRPC and\ngRPC-Gateway.",
+        "version": "0.6",
+      },
+    "postman":
+      {
+        "name": "List notifications",
+        "description": { "type": "text/plain" },
+        "url":
+          {
+            "path": ["v1beta1", "notifications"],
+            "host": ["{{baseUrl}}"],
+            "query":
+              [
+                { "disabled": false, "key": "type", "value": "" },
+                { "disabled": false, "key": "template", "value": "" },
+              ],
+            "variable": [],
+          },
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "method": "GET",
+      },
+  }
 sidebar_class_name: "get api-method"
 info_path: docs/apis/siren-apis
 custom_edit_url: null
@@ -22,17 +168,15 @@ import TabItem from "@theme/TabItem";
 
 ## List notifications
 
-
-
 List notifications
 
 <details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"type","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"template","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>notifications</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"namespace_id"} required={false} schemaName={"uint64"} qualifierMessage={undefined} schema={{"type":"string","format":"uint64"}}></SchemaItem><SchemaItem collapsible={false} name={"type"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"data"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>labels</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem name={"property name*"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}} collapsible={false} discriminator={false}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={false} name={"valid_duration"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"template"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"create_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"unique_key"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>receiver_selectors</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>receiver_selector</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem name={"property name*"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}} collapsible={false} discriminator={false}></SchemaItem></div></details></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"notifications\": [\n    {\n      \"id\": \"string\",\n      \"namespace_id\": \"string\",\n      \"type\": \"string\",\n      \"data\": {},\n      \"labels\": {},\n      \"valid_duration\": \"string\",\n      \"template\": \"string\",\n      \"create_at\": \"2024-07-03T08:23:38.601Z\",\n      \"unique_key\": \"string\",\n      \"receiver_selectors\": [\n        {\n          \"receiver_selector\": {}\n        }\n      ]\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"default"} value={"default"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>notifications</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"namespace_id"} required={false} schemaName={"uint64"} qualifierMessage={undefined} schema={{"type":"string","format":"uint64"}}></SchemaItem><SchemaItem collapsible={false} name={"type"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"data"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>labels</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem name={"property name*"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}} collapsible={false} discriminator={false}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={false} name={"valid_duration"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"template"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"create_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"unique_key"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>receiver_selectors</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>receiver_selector</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem name={"property name*"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}} collapsible={false} discriminator={false}></SchemaItem></div></details></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"notifications\": [\n    {\n      \"id\": \"string\",\n      \"namespace_id\": \"string\",\n      \"type\": \"string\",\n      \"data\": {},\n      \"labels\": {},\n      \"valid_duration\": \"string\",\n      \"template\": \"string\",\n      \"create_at\": \"2024-07-09T13:51:06.064Z\",\n      \"unique_key\": \"string\",\n      \"receiver_selectors\": [\n        {\n          \"receiver_selector\": {}\n        }\n      ]\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"default"} value={"default"}><div>
 
 An unexpected error response.
 
 </div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"code"} required={false} schemaName={"int32"} qualifierMessage={undefined} schema={{"type":"integer","format":"int32"}}></SchemaItem><SchemaItem collapsible={false} name={"message"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>details</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"@type"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"code\": 0,\n  \"message\": \"string\",\n  \"details\": [\n    {\n      \"@type\": \"string\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem></ApiTabs></div>
-      
+

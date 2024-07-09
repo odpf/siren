@@ -760,6 +760,10 @@ paths:
           required: false
           type: string
           format: uint64
+        - name: with_subscription_receiver
+          in: query
+          required: false
+          type: boolean
       tags:
         - Subscription
     post:
@@ -1627,6 +1631,10 @@ definitions:
         format: uint64
       configuration:
         type: object
+      subscription_receiver_labels:
+        type: object
+        additionalProperties:
+          type: string
   ReceiverSelector:
     type: object
     properties:

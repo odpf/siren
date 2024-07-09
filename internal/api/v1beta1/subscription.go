@@ -36,6 +36,7 @@ func (s *GRPCServer) ListSubscriptions(ctx context.Context, req *sirenv1beta1.Li
 			NotificationMatch:          req.GetNotificationMatch(),
 			ReceiverID:                 req.GetReceiverId(),
 			SubscriptionReceiverLabels: req.GetSubscriptionReceiverLabels(),
+			WithSubscriptionReceiver:   req.GetWithSubscriptionReceiver(),
 		})
 	} else {
 		subscriptions, err = s.subscriptionService.List(ctx, subscription.Filter{
@@ -62,8 +63,9 @@ func (s *GRPCServer) ListSubscriptions(ctx context.Context, req *sirenv1beta1.Li
 			}
 
 			receiverMetadatasPB = append(receiverMetadatasPB, &sirenv1beta1.ReceiverMetadata{
-				Id:            item.ID,
-				Configuration: configMapPB,
+				Id:                         item.ID,
+				Configuration:              configMapPB,
+				SubscriptionReceiverLabels: item.SubscriptionReceiverLabels,
 			})
 		}
 

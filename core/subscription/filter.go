@@ -9,4 +9,5 @@ type Filter struct {
 	IDs                        []int64
 	SubscriptionReceiverLabels map[string]string
 	ReceiverID                 uint64
+	WithSubscriptionReceiver   bool
 }
