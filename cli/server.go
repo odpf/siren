@@ -129,7 +129,7 @@ func StartServer(ctx context.Context, cfg config.Config) error {
 	}
 
 	// propagating the config explicitly
-	cfg.Notification.SubscriptionV2Enabled = cfg.Service.SubscriptionV2Enabled
+	// cfg.Notification.SubscriptionV2Enabled = cfg.Service.SubscriptionV2Enabled
 
 	defer cleanUpTelemetry()
 

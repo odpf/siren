@@ -11,12 +11,11 @@ import (
 	"github.com/goto/siren/core/silence"
 	"github.com/goto/siren/core/subscription"
 	"github.com/goto/siren/core/template"
-	"github.com/goto/siren/pkg/errors"
 )
 
 type Router interface {
-	PrepareMessage(ctx context.Context, n Notification) ([]Message, []log.Notification, bool, error)
-	PrepareMessageV2(ctx context.Context, n Notification) ([]Message, []log.Notification, bool, error)
+	// PrepareMessage(ctx context.Context, n Notification) ([]Message, []log.Notification, bool, error)
+	// PrepareMessageV2(ctx context.Context, n Notification) ([]Message, []log.Notification, bool, error)
 	PrepareMetaMessages(ctx context.Context, n Notification) (metaMessages []MetaMessage, notificationLogs []log.Notification, err error)
 }
 
@@ -51,8 +50,8 @@ type TemplateService interface {
 
 // Service is a service for notification domain
 type Service struct {
-	deps               Deps
-	dispatchServiceMap map[string]Dispatcher
+	deps            Deps
+	dispatchService Dispatcher
 }
 
 type Deps struct {
@@ -72,21 +71,21 @@ type Deps struct {
 // NewService creates a new notification service
 func NewService(
 	deps Deps,
-	dispatchServiceMap map[string]Dispatcher,
+	dispatchService Dispatcher,
 ) *Service {
 	return &Service{
-		deps:               deps,
-		dispatchServiceMap: dispatchServiceMap,
+		deps:            deps,
+		dispatchService: dispatchService,
 	}
 }
 
 func (s *Service) Dispatch(ctx context.Context, ns []Notification, dispatcherKind string) ([]string, error) {
 	ctx = s.deps.Repository.WithTransaction(ctx)
-	selectedDispatcher, exist := s.dispatchServiceMap[dispatcherKind]
-	if !exist {
-		return nil, errors.ErrInvalid.WithMsgf("unsupported notification dispatcher: %q", dispatcherKind)
-	}
-	ids, err := selectedDispatcher.Dispatch(ctx, ns)
+	// selectedDispatcher, exist := s.dispatchServiceMap[dispatcherKind]
+	// if !exist {
+	// 	return nil, errors.ErrInvalid.WithMsgf("unsupported notification dispatcher: %q", dispatcherKind)
+	// }
+	ids, err := s.dispatchService.Dispatch(ctx, ns)
 	if err != nil {
 		if err := s.deps.Repository.Rollback(ctx, err); err != nil {
 			return nil, err

@@ -53,7 +53,7 @@ func (s *NotificationReceiverTestSuite) SetupTest() {
 	}
 	s.appConfig.Notification.MessageHandler.Enabled = true
 	s.appConfig.Notification.DLQHandler.Enabled = false
-	s.appConfig.Notification.SubscriptionV2Enabled = true
+	// s.appConfig.Notification.SubscriptionV2Enabled = true
 
 	s.testBench, err = InitCortexEnvironment(s.appConfig)
 	s.Require().NoError(err)

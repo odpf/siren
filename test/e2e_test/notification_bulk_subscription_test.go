@@ -67,7 +67,7 @@ func (s *BulkNotificationSubscriptionTestSuite) SetupTest() {
 			"team",
 			"service",
 		},
-		SubscriptionV2Enabled: true,
+		// SubscriptionV2Enabled: true,
 	}
 	s.appConfig.Telemetry.OpenTelemetry.Enabled = false
 

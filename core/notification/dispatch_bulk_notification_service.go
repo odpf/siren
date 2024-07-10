@@ -50,7 +50,7 @@ func (s *DispatchBulkNotificationService) getRouter(notificationRouterKind strin
 	return selectedRouter, nil
 }
 
-func (s *DispatchBulkNotificationService) prepareMetaMessages(ctx context.Context, ns []Notification) (metaMessages []MetaMessage, notificationLogs []log.Notification, err error) {
+func (s *DispatchBulkNotificationService) prepareMetaMessages(ctx context.Context, ns []Notification, continueWhenError bool) (metaMessages []MetaMessage, notificationLogs []log.Notification, err error) {
 	for _, n := range ns {
 		if err := n.Validate(RouterSubscriber); err != nil {
 			return nil, nil, err
@@ -70,7 +70,9 @@ func (s *DispatchBulkNotificationService) prepareMetaMessages(ctx context.Contex
 					errMessage = fmt.Sprintf("not matching any subscription for notification: %s", string(nJson))
 				}
 				s.deps.Logger.Warn(errMessage)
-				continue
+				if continueWhenError {
+					continue
+				}
 			}
 			return nil, nil, err
 		}
@@ -97,9 +99,25 @@ func (s *DispatchBulkNotificationService) Dispatch(ctx context.Context, ns []Not
 		return nil, err
 	}
 
-	metaMessages, notificationLogs, err = s.prepareMetaMessages(ctx, notifications)
-	if err != nil {
-		return nil, err
+	for _, n := range ns {
+		switch n.Type {
+		case TypeAlert:
+			metaMsgs, nfLogs, err := s.fetchMetaMessagesByRouter(ctx, n, RouterSubscriber)
+			if err != nil {
+				return nil, err
+			}
+			metaMessages = append(metaMessages, metaMsgs...)
+			notificationLogs = append(notificationLogs, nfLogs...)
+		case TypeEvent:
+			metaMsgs, nfLogs, err := s.fetchMetaMessagesForEvents(ctx, n)
+			if err != nil {
+				return nil, err
+			}
+			metaMessages = append(metaMessages, metaMsgs...)
+			notificationLogs = append(notificationLogs, nfLogs...)
+		default:
+			return nil, errors.ErrInternal.WithMsgf("unknown notification type %s", n.Type)
+		}
 	}
 
 	if len(metaMessages) == 0 {
@@ -137,12 +155,91 @@ func (s *DispatchBulkNotificationService) Dispatch(ctx context.Context, ns []Not
 	return notificationIDs, nil
 }
 
+func (s *DispatchBulkNotificationService) fetchMetaMessagesByRouter(ctx context.Context, n Notification, flow string) (metaMessages []MetaMessage, notificationLogs []log.Notification, err error) {
+	if err := n.Validate(flow); err != nil {
+		return nil, nil, err
+	}
+
+	router, err := s.getRouter(flow)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// var (
+	// 	messages         []Message
+	// 	notificationLogs []log.Notification
+	// )
+
+	metaMessages, notificationLogs, err = router.PrepareMetaMessages(ctx, n)
+	if err != nil {
+		if errors.Is(err, ErrRouteSubscriberNoMatchFound) {
+			errMessage := fmt.Sprintf("not matching any subscription for notification: %v", n)
+			nJson, err := json.MarshalIndent(n, "", "  ")
+			if err == nil {
+				errMessage = fmt.Sprintf("not matching any subscription for notification: %s", string(nJson))
+			}
+			s.deps.Logger.Warn(errMessage)
+		}
+		return nil, nil, err
+	}
+
+	return metaMessages, notificationLogs, nil
+
+	// if len(metaMessages) == 0 && len(notificationLogs) == 0 {
+	// 	return nil, fmt.Errorf("something wrong and no messages will be sent with notification: %v", n)
+	// }
+
+	// if err := s.deps.LogService.LogNotifications(ctx, notificationLogs...); err != nil {
+	// 	return nil, fmt.Errorf("failed logging notifications: %w", err)
+	// }
+
+	// reducedMetaMessages, err := ReduceMetaMessages(metaMessages, s.deps.Cfg.GroupBy)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// messages, err = s.RenderMessages(ctx, reducedMetaMessages)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return messages, nil
+}
+
 func (s *DispatchBulkNotificationService) getNotifierPlugin(receiverType string) (Notifier, error) {
 	notifierPlugin, exist := s.notifierPlugins[receiverType]
 	if !exist {
 		return nil, errors.ErrInvalid.WithMsgf("unsupported receiver type: %q", receiverType)
 	}
 	return notifierPlugin, nil
+}
+
+func (s *DispatchBulkNotificationService) fetchMetaMessagesForEvents(ctx context.Context, n Notification) ([]MetaMessage, []log.Notification, error) {
+	if len(n.ReceiverSelectors) == 0 && len(n.Labels) == 0 {
+		return nil, nil, errors.ErrInvalid.WithMsgf("no receivers found")
+	}
+
+	var (
+		metaMessages     = []MetaMessage{}
+		notificationLogs = []log.Notification{}
+	)
+	if len(n.ReceiverSelectors) != 0 {
+		generatedMetaMessages, nfLog, err := s.fetchMetaMessagesByRouter(ctx, n, RouterReceiver)
+		if err != nil {
+			return nil, nil, err
+		}
+		metaMessages = append(metaMessages, generatedMetaMessages...)
+		notificationLogs = append(notificationLogs, nfLog...)
+	}
+
+	if len(n.Labels) != 0 {
+		generatedMetaMessages, nfLog, err := s.fetchMetaMessagesByRouter(ctx, n, RouterSubscriber)
+		if err != nil {
+			return nil, nil, err
+		}
+		metaMessages = append(metaMessages, generatedMetaMessages...)
+		notificationLogs = append(notificationLogs, nfLog...)
+	}
+	return metaMessages, notificationLogs, nil
 }
 
 func (s *DispatchBulkNotificationService) RenderMessages(ctx context.Context, metaMessages []MetaMessage) (messages []Message, err error) {

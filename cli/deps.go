@@ -173,22 +173,26 @@ func InitDeps(
 		),
 	}
 
-	dispatchServiceRegistry := map[string]notification.Dispatcher{
-		notification.DispatchKindBulkNotification: notification.NewDispatchBulkNotificationService(
-			notificationDeps,
-			notifierRegistry,
-			routerRegistry,
-		),
-		notification.DispatchKindSingleNotification: notification.NewDispatchSingleNotificationService(
-			notificationDeps,
-			notifierRegistry,
-			routerRegistry,
-		),
-	}
+	// dispatchServiceRegistry := map[string]notification.Dispatcher{
+	// 	notification.DispatchKindBulkNotification: notification.NewDispatchBulkNotificationService(
+	// 		notificationDeps,
+	// 		notifierRegistry,
+	// 		routerRegistry,
+	// 	),
+	// 	notification.DispatchKindSingleNotification: notification.NewDispatchSingleNotificationService(
+	// 		notificationDeps,
+	// 		notifierRegistry,
+	// 		routerRegistry,
+	// 	),
+	// }
 
 	notificationService := notification.NewService(
 		notificationDeps,
-		dispatchServiceRegistry,
+		notification.NewDispatchBulkNotificationService(
+			notificationDeps,
+			notifierRegistry,
+			routerRegistry,
+		),
 	)
 
 	alertService := alert.NewService(

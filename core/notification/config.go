@@ -14,9 +14,7 @@ type Config struct {
 	DLQHandler              HandlerConfig `mapstructure:"dlq_handler" yaml:"dlq_handler"`
 	GroupBy                 []string      `mapstructure:"group_by" yaml:"group_by"`
 
-	// experimental: derived from service.Config
-	SubscriptionV2Enabled bool
-	EnableSilenceFeature  bool
+	EnableSilenceFeature bool
 }
 
 type HandlerConfig struct {
